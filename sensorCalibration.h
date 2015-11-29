@@ -12,3 +12,11 @@
 #define Y_MAG_GAIN              (0.943)
 #define Z_MAG_OFFSET            (-23.16)
 #define Z_MAG_GAIN              (1.054)
+
+const double motorCurrentMult =			1.0;	/**< Motor current gain									*/
+const double motorVoltMult = 			1.0;	/**< Motor voltage gain									*/
+const int16_t batteryCurrentOffset =	0;		/**< Battery current offset								*/
+const double batteryCurrentMult =		1.0;	/**< Battery current gain								*/
+const double internalBatVoltMult =   	1.0;	/**< Internal battery voltage multiplier				*/
+const double batteryVoltMult = 			1.0;	/**< Battery voltage gain								*/
+const int16_t motorCurrentOffset = 		0;		/**< Motor current offset								*/

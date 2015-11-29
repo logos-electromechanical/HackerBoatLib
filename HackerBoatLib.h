@@ -1,4 +1,4 @@
-
+#include <Arduino.h>
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Servo.h>
@@ -36,13 +36,15 @@ typedef enum arduinoState {
 	BOAT_FAULT    		= 6,  		/**< The boat is faulted in some fashion */
 	BOAT_SELFRECOVERY 	= 7,   		/**< The Beaglebone has failed and/or is not transmitting, so time to self-recover*/
 	BOAT_ARMEDTEST		= 8,		/**< The Arduino is accepting specific pin read/write requests for hardware testing. */
-	BOAT_ACTIVERUDDER	= 9			/**< The Arduino is accepting direct rudder commands */
+	BOAT_ACTIVERUDDER	= 9,		/**< The Arduino is accepting direct rudder commands */
+	BOAT_NONE			= 10		/**< Provides a null value for no command yet received */
 } arduinoState;        
 
+const uint8_t arduinoStateCount = 11;
 const String arduinoStates[] = {"PowerUp", "Armed", "SelfTest", 
 								"Disarmed", "Active", "LowBattery", 
 								"Fault", "SelfRecovery", "ArmedTest", 
-								"ActiveRudder"};
+								"ActiveRudder", "None"};
 						
 /**
  * @brief Beaglebone state
@@ -57,12 +59,24 @@ typedef enum boneState {
 	BONE_WAYPOINT		= 6,		/**< Beaglebone navigating by waypoints   */
 	BONE_NOSIGNAL		= 7,		/**< Beaglebone has lost shore signal    */
 	BONE_RETURN			= 8,		/**< Beaglebone is attempting to return to start point */
-	BONE_ARMEDTEST		= 9			/**< Beaglebone accepts all commands that would be valid in any unsafe state */
+	BONE_ARMEDTEST		= 9,		/**< Beaglebone accepts all commands that would be valid in any unsafe state */
+	BONE_UNKNOWN		= 10		/**< State of the Beaglebone is currently unknown	*/
 } boneState;
 
-const String boneStates[] = {"Start", "SelfTest", "Disarmed", "Fault",
-							"Armed", "Manual", "WaypointNavigation",
-							"LossOfSignal", "ReturnToLaunch", "ArmedTest"};
+const uint8_t boneStateCount = 11;
+const String boneStates[] = {
+	"Start", 
+	"SelfTest", 
+	"Disarmed", 
+	"Fault",
+	"Armed", 
+	"Manual", 
+	"WaypointNavigation",
+	"LossOfSignal", 
+	"ReturnToLaunch", 
+	"ArmedTest"
+	"Unknown"
+};
 
 /**
  * @brief An enum to store the current throttle state.
@@ -150,62 +164,56 @@ typedef enum throttleState {
  * @brief Structure to hold the boat's state data 
  */
 typedef struct boatVector {
-	arduinoState state;				/**< The current state of the boat                    */
-	throttleState throttle;   		/**< The current throttle position                    */
-	boneState bone;					/**< The current state of the BeagleBone                */
-	sensors_vec_t orientation;		/**< The current accelerometer tilt and magnetic heading of the boat  */
-	double headingTarget;			/**< The desired magnetic heading                     */  
-	double internalVoltage;			/**< The battery voltage measured on the control PCB          */
-	double batteryVoltage;			/**< The battery voltage measured at the battery            */
-	uint8_t enbButton;				/**< State of the enable button. off = 0; on = 0xff           */
-	uint8_t stopButton;				/**< State of the emergency stop button. off = 0; on = 0xff       */
-	long timeSinceLastPacket;		/**< Number of milliseconds since the last command packet received    */
+	arduinoState 	state;					/**< The current state of the boat                    */
+	arduinoState	command;
+	throttleState 	throttle;   			/**< The current throttle position                    */
+	boneState 		bone;					/**< The current state of the BeagleBone                */
+	sensors_vec_t 	orientation;			/**< The current accelerometer tilt and magnetic heading of the boat  */
+	double 			headingTarget;			/**< The desired magnetic heading                     */  
+	double 			internalVoltage;		/**< The battery voltage measured on the control PCB          */
+	double 			batteryVoltage;			/**< The battery voltage measured at the battery            */
+	double			motorVoltage;
+	int 			enbButton;				/**< State of the enable button. off = 0; on = 0xff           */
+	int		 		stopButton;				/**< State of the emergency stop button. off = 0; on = 0xff       */
+	long 			timeSinceLastPacket;	/**< Number of milliseconds since the last command packet received    */
+	long 			timeOfLastPacket;		/**< Time the last packet arrived */
+	long 			timeOfLastBoneHB;	
+	long 			timeOfLastShoreHB;
+	String			stateString;
+	String 			boneStateString;
+	String			commandString;
+	uint8_t			faultString;			/**< Fault string -- binary string to indicate source of faults */
+	double 			headingCurrent;
+	double 			rudder;
+	int				rudderRaw;
+	int				internalVoltageRaw;
+	int				motorVoltageRaw;
+	double			motorCurrent;
+	int				motorCurrentRaw;
+	double			Kp;
+	double			Ki;
+	double			Kd;
+	double			headingCurrent;
+	double			pitch;
+	double			roll;
+	double 			magX;
+	double 			magY;
+	double 			magZ;
+	double 			accX;
+	double 			accY;
+	double 			accZ;
+	double 			gyroX;
+	double 			gyroY;
+	double 			gyroZ;
+	int 			horn;
+	int				motorDirRly;
+	int				motorWhtRly;
+	int				motorYlwRly;
+	int				motorRedRly;
+	int				motorRedWhtRly;
+	int				motorRedYlwRly;
+	int				servoPower;
 } boatVector;
-
-/**
- * @brief Structure to hold the boat's state data 
- */
-typedef struct RESTstruct {
-	String	_state,
-	String	_boneState,
-	String	_command,
-	String	_fault,
-	int		_throttle,
-	float	_headingTarget,
-	float	_headingDelta,
-	float	_headingCurrent,
-	float	_rudder,
-	int		_rudderRaw,
-	float	_internalVoltage,
-	int		_internalVoltageRaw,
-	float	_motorVoltage,
-	int		_motorVoltageRaw,
-	float	_motorCurrent,
-	int		_motorCurrentRaw,
-	float	_Kp,
-	float	_Ki,
-	float	_Kd,
-	float	_pitch,
-	float	_roll,
-	float	_accX,
-	float	_accY,
-	float	_accZ,
-	float	_magX,
-	float	_magY,
-	float	_magZ,
-	float	_gyroX,
-	float	_gyroY,
-	float	_gyroZ,
-	int		_startButton,
-	int		_stopButton,
-	int		_horn,
-	int		_motorDirRly,
-	int		_motorWhtRly,
-	int		_motorYlwRly,
-	int		_motorRedRly,
-	int		_motorRedWhtRly,
-	int		_motorRedYlwRly
-} restStruct;
 
 //////////////////////
 // global variables //
@@ -213,18 +221,16 @@ typedef struct RESTstruct {
 
 aREST 		restInput 	= aREST();	/**< REST input object **/
 boatVector 	boat;					/**< Boat state vector            */
-uint16_t 	faultString = 0;		/**< Fault string -- binary string to indicate source of faults */
-restStruct 	restVars;				/**< interface variables to work with REST */
 
 ///////////////////////////////////
 // general function declarations //
 ///////////////////////////////////
 
 void initIO 	(void);
-void initREST 	(aREST * rest, restStruct * vars);
+void initREST 	(aREST * rest, boatVector * thisBoat);
 void initBoat	(boatVector * thisBoat);
-void input		(boatVector * thisBoat, restStruct * vars);
-void output		(boatVector * thisBoat, restStruct * vars);
+void input		(boatVector * thisBoat);
+void output		(boatVector * thisBoat);
 
 ////////////////////////////////
 // REST function declarations //
@@ -246,19 +252,22 @@ int writeMotorYlwRly 	(String params);
 int writeMotorRedRly 	(String params);
 int writeMotorRedWhtRly (String params);
 int writeMotorRedYlwRly (String params);
+int writeServoPower		(String params);
+int	boneHeartBeat		(String params);
+int	shoreHeartBeat		(String params);
 
 /////////////////////////////////
 // state function declarations //
 /////////////////////////////////
 
-arduinoState executePowerUp			(boatVector * thisBoat, restStruct * vars, arduinoState lastState);
-arduinoState executeSelfTest		(boatVector * thisBoat, restStruct * vars, arduinoState lastState);
-arduinoState executeDisarmed		(boatVector * thisBoat, restStruct * vars, arduinoState lastState);
-arduinoState executeFault			(boatVector * thisBoat, restStruct * vars, arduinoState lastState);
-arduinoState executeArmed			(boatVector * thisBoat, restStruct * vars, arduinoState lastState);
-arduinoState executeArmedTest		(boatVector * thisBoat, restStruct * vars, arduinoState lastState);
-arduinoState executeActive			(boatVector * thisBoat, restStruct * vars, arduinoState lastState);
-arduinoState executeActiveRudder	(boatVector * thisBoat, restStruct * vars, arduinoState lastState);
-arduinoState executeLowBattery		(boatVector * thisBoat, restStruct * vars, arduinoState lastState);
-arduinoState executeSelfRecovery	(boatVector * thisBoat, restStruct * vars, arduinoState lastState);
+arduinoState executePowerUp			(boatVector * thisBoat, arduinoState lastState);
+arduinoState executeSelfTest		(boatVector * thisBoat, arduinoState lastState);
+arduinoState executeDisarmed		(boatVector * thisBoat, arduinoState lastState);
+arduinoState executeFault			(boatVector * thisBoat, arduinoState lastState);
+arduinoState executeArmed			(boatVector * thisBoat, arduinoState lastState);
+arduinoState executeArmedTest		(boatVector * thisBoat, arduinoState lastState);
+arduinoState executeActive			(boatVector * thisBoat, arduinoState lastState);
+arduinoState executeActiveRudder	(boatVector * thisBoat, arduinoState lastState);
+arduinoState executeLowBattery		(boatVector * thisBoat, arduinoState lastState);
+arduinoState executeSelfRecovery	(boatVector * thisBoat, arduinoState lastState);
 

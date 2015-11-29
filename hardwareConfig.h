@@ -1,11 +1,12 @@
 // steering and servo constants
-const double Kp =               5.0;
-const double Ki =               0.25;
-const double Kd =               0.0;
-const double pidMax =           100.0;
-const double pidMin =           -100.0;
-const uint16_t servoMin =       860;
-const uint16_t servoMax =       2240;
+const double Kp_start 					= 5.0;
+const double Ki_start					= 0.25;
+const double Kd_start					= 0.0;
+const double pidMax						= 100.0;
+const double pidMin						= -100.0;
+const uint16_t servoMin					= 860;
+const uint16_t servoMax					= 2240;
+const uint16_t servoCenter				= ((servoMin + servoMax)/2);
 
 // test limits
 const double compassDeviationLimit = 	10.0;	/**< Limit of compass swing, in degrees, during test period 	*/
@@ -62,13 +63,6 @@ const uint8_t stopButton = 				36;		/**< Stop button input									*/
 // pin-associated constants
 const uint8_t boneLightCount =			8;		/**< The number of pixels in the BeagleBone light strip	*/	
 const uint8_t ardLightCount =			8;		/**< The number of pixels in the Arduino light strip	*/
-const int16_t motorCurrentOffset = 		0;		/**< Motor current offset								*/
-const double motorCurrentMult =			1.0;	/**< Motor current gain									*/
-const double motorVoltMult = 			1.0;	/**< Motor voltage gain									*/
-const int16_t batteryCurrentOffset =	0;		/**< Battery current offset								*/
-const double batteryCurrentMult =		1.0;	/**< Battery current gain								*/
-const double internalBatVoltMult =   	1.0;	/**< Internal battery voltage multiplier				*/
-const double batteryVoltMult = 			1.0;	/**< Battery voltage gain								*/
 
 // color definitions
 const uint32_t grn = Adafruit_NeoPixel::Color(0, 0xff, 0);			/**< pixel colors for green		*/
