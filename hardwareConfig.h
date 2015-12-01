@@ -34,8 +34,8 @@ const int16_t sendDelay =           	1000;	/**< Time in ms between packet transm
 const int16_t flashDelay = 				500;	/**< Time in ms between light transitions while flashing					*/
 
 // port mapping
-HardwareSerial LogSerial = 				Serial;		/**< Serial port used for logging and feedback */
-HardwareSerial RestSerial = 			Serial1;	/**< Serial port used for REST commands and response */
+static HardwareSerial LogSerial = 		Serial;		/**< Serial port used for logging and feedback */
+static HardwareSerial RESTSerial = 		Serial1;	/**< Serial port used for REST commands and response */
 
 // pin mapping
 const uint8_t servoEnable =          	2;		/**< Enable pin for the steering servo power supply 	*/

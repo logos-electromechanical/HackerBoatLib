@@ -221,8 +221,8 @@ typedef struct boatVector {
 // global variables //
 //////////////////////
 
-aREST 		restInput 	= aREST();	/**< REST input object **/
-boatVector 	boat;					/**< Boat state vector            */
+static aREST 		restInput 	= aREST();	/**< REST input object **/
+static boatVector 	boat;					/**< Boat state vector            */
 
 ///////////////////////////////////
 // general function declarations //

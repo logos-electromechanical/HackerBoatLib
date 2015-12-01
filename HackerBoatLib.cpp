@@ -39,7 +39,7 @@ void 	setThrottle (boatVector * thisBoat);
  */
 void initIO 	(void) {
 	LogSerial.begin(115200);
-	RestSerial.begin(115200);
+	RESTSerial.begin(115200);
 	pinMode(servoEnable, OUTPUT);
 	pinMode(steeringPin, OUTPUT);
 	pinMode(relaySpeedWht, OUTPUT);
@@ -239,7 +239,7 @@ void input (boatVector * thisBoat) {
 	thisBoat->batteryVoltage		= 0;
 
 	// read REST
-	if (restInput.handle(RestSerial)) {
+	if (restInput.handle(RESTSerial)) {
 		thisBoat->timeSinceLastPacket = 0;
 		thisBoat->timeOfLastPacket = millis();
 	} else {
