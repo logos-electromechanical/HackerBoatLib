@@ -1,3 +1,6 @@
+#ifndef HACKERBOATLIB_CAL_h
+#define HACKERBOATLIB_CAL_h
+
 // calibration constants
 // these constants are used to calibrate the accelerometer and magnetometer
 #define X_ACCEL_OFFSET          (0)
@@ -20,3 +23,5 @@ const double batteryCurrentMult =		1.0;	/**< Battery current gain								*/
 const double internalBatVoltMult =   	1.0;	/**< Internal battery voltage multiplier				*/
 const double batteryVoltMult = 			1.0;	/**< Battery voltage gain								*/
 const int16_t motorCurrentOffset = 		0;		/**< Motor current offset								*/
+
+#endif

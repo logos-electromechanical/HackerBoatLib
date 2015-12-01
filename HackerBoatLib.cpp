@@ -9,7 +9,7 @@ double currentError;    		/**< Current heading error. This is a global so the PI
 double targetError 	= 0;		/**< Desired heading error. This is a global so the PID can be as well  */
 double steeringCmd;				/**< Steering command to be written out to the servo.           */
 PID steeringPID(&currentError, 	/**< PID loop object for driving the steering servo */
-				&(boat->rudder), 
+				&(boat.rudder), 
 				&targetError, 
 				0, 0, 0, 
 				REVERSE); 
@@ -101,11 +101,11 @@ void initREST 	(aREST * rest, boatVector * thisBoat) {
 	rest->set_name(REST_NAME);
 	
 	// Variable assignments
-	rest->variable("state", 				&((int)thisBoat->state));
-	rest->variable("boneState", 			&((int)thisBoat->boneState));
-	rest->variable("command", 				&((int)thisBoat->command));
-	rest->variable("fault", 				&((int)thisBoat->faultString));
-	rest->variable("throttle", 				&((int)thisBoat->throttle));
+	rest->variable("state", 				(int *)&(thisBoat->state));
+	rest->variable("boneState", 			(int *)&(thisBoat->bone));
+	rest->variable("command", 				(int *)&(thisBoat->command));
+	rest->variable("fault", 				(int *)&(thisBoat->faultString));
+	rest->variable("throttle", 				(int *)&(thisBoat->throttle));
 	rest->variable("headingTarget", 		&(thisBoat->headingTarget));
 	rest->variable("headingCurrent", 		&(thisBoat->headingCurrent));
 	rest->variable("rudder", 				&(thisBoat->rudder));
@@ -152,11 +152,11 @@ void initREST 	(aREST * rest, boatVector * thisBoat) {
 	rest->function("writeKd", 				writeKd);
 	rest->function("writeHorn", 			writeHorn);
 	rest->function("writeMotorDirRly", 		writeMotorDirRly);
-	rest->function("writemotorWhtRly", 		writemotorWhtRly);
-	rest->function("writemotorYlwRly", 		writemotorYlwRly);
-	rest->function("writemotorRedRly", 		writemotorRedRly);
-	rest->function("writemotorRedWhtRly", 	writemotorRedWhtRly);
-	rest->function("writemotorRedYlwRly", 	writemotorRedYlwRly);
+	rest->function("writemotorWhtRly", 		writeMotorWhtRly);
+	rest->function("writemotorYlwRly", 		writeMotorYlwRly);
+	rest->function("writemotorRedRly", 		writeMotorRedRly);
+	rest->function("writemotorRedWhtRly", 	writeMotorRedWhtRly);
+	rest->function("writemotorRedYlwRly", 	writeMotorRedYlwRly);
 	rest->function("boneHeartBeat", 		boneHeartBeat);
 	rest->function("shoreHeartBeat", 		boneHeartBeat);
 }
@@ -173,7 +173,7 @@ void initBoat	(boatVector * thisBoat) {
 	thisBoat->rudder 			= LOW;
 	thisBoat->stateString 		= arduinoStates[thisBoat->state];
 	thisBoat->commandString		= arduinoStates[thisBoat->command];
-	thisBoat->boneStateString	= boneState[thisBoat->bone];
+	thisBoat->boneStateString	= boneStates[thisBoat->bone];
 	thisBoat->Kp				= Kp_start;
 	thisBoat->Ki				= Ki_start;
 	thisBoat->Kd				= Kd_start;
@@ -200,7 +200,7 @@ void initBoat	(boatVector * thisBoat) {
 void input (boatVector * thisBoat) {
 	sensors_event_t accel_event;
 	sensors_event_t mag_event;
-	sensors_event_t gyro_event
+	sensors_event_t gyro_event;
 	uint8_t failCnt = 0;	
 	
 	// get & process the IMU data
@@ -239,7 +239,7 @@ void input (boatVector * thisBoat) {
 	thisBoat->batteryVoltage		= 0;
 
 	// read REST
-	if (handle(RestSerial)) {
+	if (restInput.handle(RestSerial)) {
 		thisBoat->timeSinceLastPacket = 0;
 		thisBoat->timeOfLastPacket = millis();
 	} else {
@@ -386,7 +386,7 @@ void lightControl(arduinoState state, boneState bone) {
 					color0 = grn;
 				} else {
 					flashState = true;
-					color0 = blue;
+					color0 = blu;
 				}
 			}
 			break;
@@ -625,108 +625,108 @@ void setThrottle (boatVector * thisBoat) {
 int writeBoneState (String params) {
 	for (uint8_t i = 0; i < boneStateCount; i++) {
 		if(params.equals(boneStates[i])) {
-			boat->bone = i;
-			boat->boneStateString = boneState[i];
+			boat.bone = (boneState)i;
+			boat.boneStateString = boneStates[i];
 			return 0;
 		}
 	}
-	boat->bone = BONE_UNKNOWN;
-	boat->boneStateString = boneState[BONE_UNKNOWN];
+	boat.bone = BONE_UNKNOWN;
+	boat.boneStateString = boneStates[BONE_UNKNOWN];
 	return -1;
 }
 
 int writeCommand (String params) {
 	for (uint8_t i = 0; i < arduinoStateCount; i++) {
 		if(params.equals(arduinoStates[i])) {
-			boat->command = i;
-			boat->commandString = arduinoStates[i];
+			boat.command = (arduinoState)i;
+			boat.commandString = arduinoStates[i];
 			return 0;
 		}
 	}
-	boat->command = BOAT_NONE;
-	boat->commandString = arduinoStates[BOAT_NONE];
+	boat.command = BOAT_NONE;
+	boat.commandString = arduinoStates[BOAT_NONE];
 	return -1;
 }
 
 int writeThrottle (String params) {
 	uint8_t throttleIn = params.toInt();
-	if ((boat->state == BOAT_ACTIVE) || (boat->state == BOAT_ACTIVERUDDER)) {
+	if ((boat.state == BOAT_ACTIVE) || (boat.state == BOAT_ACTIVERUDDER)) {
 		if (((throttleIn >= -1) && (throttleIn <= 5)) || 
 			(throttleIn == -3) || (throttleIn == -5)) {
-				boat->throttle = throttleIn;
+				boat.throttle = (throttleState)throttleIn;
 		}
 	}
-	return boat->throttle;
+	return boat.throttle;
 }
 
 int writeHeadingTarget (String params) {
 	double headingIn = params.toFloat();
-	if (boat->state == BOAT_ACTIVE) {
+	if (boat.state == BOAT_ACTIVE) {
 		if ((headingIn <= 360) || (headingIn >= 0)) {
-			boat->headingTarget = headingIn;
+			boat.headingTarget = headingIn;
 		}
 	}
-	return (boat->headingTarget * 10);
+	return (boat.headingTarget * 10);
 }
 
 int writeHeadingDelta (String params) {
 	double headingIn = params.toFloat();
-	if (boat->state == BOAT_ACTIVE) {
+	if (boat.state == BOAT_ACTIVE) {
 		if ((headingIn <= 180) || (headingIn >= -180)) {
-			boat->headingTarget += headingIn;
-			if (boat->headingTarget < 0) boat->headingTarget += 360;
-			if (boat->headingTarget > 360) boat->headingTarget -= 360;
+			boat.headingTarget += headingIn;
+			if (boat.headingTarget < 0) boat.headingTarget += 360;
+			if (boat.headingTarget > 360) boat.headingTarget -= 360;
 		}
 	}
-	return (boat->headingTarget * 10);
+	return (boat.headingTarget * 10);
 }
 
 int writeRudder (String params) {
 	double rudderIn = params.toFloat();
-	if ((boat->state == BOAT_ARMEDTEST) || 
-		(boat->state == BOAT_ACTIVERUDDER) ||
-		(boat->state == BOAT_ARMED)) {
-			if ((rudderIn <= pidMax) || (rudderOut >= pidMin)) {
-				boat->rudder = rudderIn;
+	if ((boat.state == BOAT_ARMEDTEST) || 
+		(boat.state == BOAT_ACTIVERUDDER) ||
+		(boat.state == BOAT_ARMED)) {
+			if ((rudderIn <= pidMax) || (rudderIn >= pidMin)) {
+				boat.rudder = rudderIn;
 			}
 	}
-	return (boat->rudder * 10);
+	return (boat.rudder * 10);
 }
 
 int writeKp (String params) {
 	double Kin = params.toFloat();
 	if ((Kin <= 10) || (Kin >= -10)) {
-		boat->Kp = Kin;
-		steeringPID.SetTunings(boat->Kp, boat->Ki, boat->Kd);
+		boat.Kp = Kin;
+		steeringPID.SetTunings(boat.Kp, boat.Ki, boat.Kd);
 	}
-	return (boat->Kp * 1000);
+	return (boat.Kp * 1000);
 }
 
 int writeKi (String params) {
 	double Kin = params.toFloat();
 	if ((Kin <= 10) || (Kin >= -10)) {
-		boat->Ki = Kin;
-		steeringPID.SetTunings(boat->Kp, boat->Ki, boat->Kd);
+		boat.Ki = Kin;
+		steeringPID.SetTunings(boat.Kp, boat.Ki, boat.Kd);
 	}
-	return (boat->Ki * 1000);
+	return (boat.Ki * 1000);
 }
 
 int writeKd (String params) {
 	double Kin = params.toFloat();
 	if ((Kin <= 10) || (Kin >= -10)) {
-		boat->Kd = Kin;
-		steeringPID.SetTunings(boat->Kp, boat->Ki, boat->Kd);
+		boat.Kd = Kin;
+		steeringPID.SetTunings(boat.Kp, boat.Ki, boat.Kd);
 	}
-	return (boat->Kd * 1000);
+	return (boat.Kd * 1000);
 }
 
 int writeHorn (String params) {
-	if (boat->state == BOAT_ARMEDTEST) {
+	if (boat.state == BOAT_ARMEDTEST) {
 		if (params.equals("ON")) {
-			boat->horn = HIGH;
+			boat.horn = HIGH;
 			return 1;
 		} else if (params.equals("OFF")) {
-			boat->horn = LOW;
+			boat.horn = LOW;
 			return 0;
 		}
 	}
@@ -734,12 +734,12 @@ int writeHorn (String params) {
 }
 
 int writeMotorDirRly (String params) {
-	if (boat->state == BOAT_ARMEDTEST) {
+	if (boat.state == BOAT_ARMEDTEST) {
 		if (params.equals("ON")) {
-			boat->motorDirRly = HIGH;
+			boat.motorDirRly = HIGH;
 			return 1;
 		} else if (params.equals("OFF")) {
-			boat->motorDirRly = LOW;
+			boat.motorDirRly = LOW;
 			return 0;
 		}
 	}
@@ -747,12 +747,12 @@ int writeMotorDirRly (String params) {
 }
 
 int writeMotorWhtRly (String params) {
-	if (boat->state == BOAT_ARMEDTEST) {
+	if (boat.state == BOAT_ARMEDTEST) {
 		if (params.equals("ON")) {
-			boat->motorWhtRly = HIGH;
+			boat.motorWhtRly = HIGH;
 			return 1;
 		} else if (params.equals("OFF")) {
-			boat->motorWhtRly = LOW;
+			boat.motorWhtRly = LOW;
 			return 0;
 		}
 	}
@@ -760,12 +760,12 @@ int writeMotorWhtRly (String params) {
 }
 
 int writeMotorYlwRly (String params) {
-	if (boat->state == BOAT_ARMEDTEST) {
+	if (boat.state == BOAT_ARMEDTEST) {
 		if (params.equals("ON")) {
-			boat->motorYlwRly = HIGH;
+			boat.motorYlwRly = HIGH;
 			return 1;
 		} else if (params.equals("OFF")) {
-			boat->motorYlwRly = LOW;
+			boat.motorYlwRly = LOW;
 			return 0;
 		}
 	}
@@ -773,12 +773,12 @@ int writeMotorYlwRly (String params) {
 }
 
 int writeMotorRedRly (String params) {
-	if (boat->state == BOAT_ARMEDTEST) {
+	if (boat.state == BOAT_ARMEDTEST) {
 		if (params.equals("ON")) {
-			boat->motorRedRly = HIGH;
+			boat.motorRedRly = HIGH;
 			return 1;
 		} else if (params.equals("OFF")) {
-			boat->motorRedRly = LOW;
+			boat.motorRedRly = LOW;
 			return 0;
 		}
 	}
@@ -786,12 +786,12 @@ int writeMotorRedRly (String params) {
 }
 
 int writeMotorRedWhtRly (String params) {
-	if (boat->state == BOAT_ARMEDTEST) {
+	if (boat.state == BOAT_ARMEDTEST) {
 		if (params.equals("ON")) {
-			boat->motorRedWhtRly = HIGH;
+			boat.motorRedWhtRly = HIGH;
 			return 1;
 		} else if (params.equals("OFF")) {
-			boat->motorRedWhtRly = LOW;
+			boat.motorRedWhtRly = LOW;
 			return 0;
 		}
 	}
@@ -799,12 +799,12 @@ int writeMotorRedWhtRly (String params) {
 }
 
 int writeMotorRedYlwRly (String params) {
-	if (boat->state == BOAT_ARMEDTEST) {
+	if (boat.state == BOAT_ARMEDTEST) {
 		if (params.equals("ON")) {
-			boat->motorRedYlwRly = HIGH;
+			boat.motorRedYlwRly = HIGH;
 			return 1;
 		} else if (params.equals("OFF")) {
-			boat->motorRedYlwRly = LOW;
+			boat.motorRedYlwRly = LOW;
 			return 0;
 		}
 	}
@@ -812,12 +812,12 @@ int writeMotorRedYlwRly (String params) {
 }
 
 int writeServoPower (String params) {
-	if (boat->state == BOAT_ARMEDTEST) {
+	if (boat.state == BOAT_ARMEDTEST) {
 		if (params.equals("ON")) {
-			boat->servoPower = HIGH;
+			boat.servoPower = HIGH;
 			return 1;
 		} else if (params.equals("OFF")) {
-			boat->servoPower = LOW;
+			boat.servoPower = LOW;
 			return 0;
 		}
 	}
@@ -825,12 +825,12 @@ int writeServoPower (String params) {
 }
 
 int	boneHeartBeat (String params) {
-	boat->timeOfLastBoneHB = millis();
+	boat.timeOfLastBoneHB = millis();
 	return 0;
 }
 
 int	shoreHeartBeat (String params) {
-	boat->timeOfLastShoreHB = millis();
+	boat.timeOfLastShoreHB = millis();
 	return 0;
 
 }
@@ -860,7 +860,7 @@ arduinoState executeSelfTest (boatVector * thisBoat, arduinoState lastState) {
 	static uint8_t accelFaultCnt = 0;
 	static uint8_t gyroFaultCnt = 0;
 	static uint8_t signalFaultCnt = 0;
-	boatState myState = BOAT_DISARMED;
+	arduinoState myState = BOAT_DISARMED;
 	throttleState myThrottle = STOP;
 
 	LogSerial.println("**** Self-testing... ****");
@@ -927,7 +927,7 @@ arduinoState executeSelfTest (boatVector * thisBoat, arduinoState lastState) {
 		LogSerial.print("Signal timeout. Current time: ");
 		LogSerial.print(millis());
 		LogSerial.print(" Last time: ");
-		LogSerial.println(thisBoat->);
+		LogSerial.println(thisBoat->timeOfLastPacket);
 	} else {
 		if (thisBoat->faultString & FAULT_NO_SIGNAL) {
 			thisBoat->faultString &= !FAULT_NO_SIGNAL;
@@ -944,14 +944,14 @@ arduinoState executeSelfTest (boatVector * thisBoat, arduinoState lastState) {
 	// Check for fault from the Beaglebone
 	if (BONE_FAULT == thisBoat->bone) {
 		faultCnt++;
-		faultString |= FAULT_BB_FAULT;
+		thisBoat->faultString |= FAULT_BB_FAULT;
 	}
 	
 	// Check for the end of the test
 	if ((millis() - startTime) > startupTestPeriod) {
 		if (faultCnt) {
 			LogSerial.print("Got faults on startup. Fault string: ");
-			LogSerial.println(faultString, HEX);
+			LogSerial.println(thisBoat->faultString, HEX);
 			return BOAT_FAULT;
 		} else {
 			return BOAT_DISARMED;
@@ -992,11 +992,11 @@ arduinoState executeDisarmed (boatVector * thisBoat, arduinoState lastState) {
 	// determine next state
 	if ((millis() - startEnbTime) > enbButtonTime) return BOAT_ARMED;
 	if (BONE_FAULT == thisBoat->bone) {
-		faultString |= FAULT_BB_FAULT;
+		thisBoat->faultString |= FAULT_BB_FAULT;
 		return BOAT_FAULT;
 	}
 	if ((millis() - thisBoat->timeOfLastBoneHB) > disarmedPacketTimeout) {
-		faultString |= FAULT_NO_SIGNAL;
+		thisBoat->faultString |= FAULT_NO_SIGNAL;
 		return BOAT_FAULT;
 	}
 	return BOAT_DISARMED;
@@ -1022,7 +1022,7 @@ arduinoState executeFault (boatVector * thisBoat, arduinoState lastState) {
 	thisBoat->headingTarget = thisBoat->orientation.heading;
 	
 	LogSerial.print("Fault string: ");
-	LogSerial.println(faultString, HEX);
+	LogSerial.println(thisBoat->faultString, HEX);
 	if (0 == thisBoat->faultString) return BOAT_DISARMED;
 	if (BOAT_SELFTEST == thisBoat->command) return BOAT_SELFTEST;
 
@@ -1033,7 +1033,7 @@ arduinoState executeFault (boatVector * thisBoat, arduinoState lastState) {
 arduinoState executeArmed (boatVector * thisBoat, arduinoState lastState) {
 	static long startStopTime = millis();
 	static long startStateTime = millis();
-	static boatState originState = BOAT_DISARMED;
+	static arduinoState originState = BOAT_DISARMED;
 
 	LogSerial.println("**** Armed ****");
 	
@@ -1065,14 +1065,14 @@ arduinoState executeArmed (boatVector * thisBoat, arduinoState lastState) {
 	
 	// check for low voltage
 	if (thisBoat->internalVoltage < serviceVoltageLimit) {
-		faultString |= FAULT_LOW_BAT;
+		thisBoat->faultString |= FAULT_LOW_BAT;
 		thisBoat->horn = LOW;
 		return BOAT_LOWBATTERY;
 	}
 	
 	// check for packet timeout
 	if ((millis() - thisBoat->timeOfLastBoneHB) > armedPacketTimeout) {
-		faultString |= FAULT_NO_SIGNAL;
+		thisBoat->faultString |= FAULT_NO_SIGNAL;
 		thisBoat->horn = LOW;
 		return BOAT_FAULT;
 	}
@@ -1135,7 +1135,7 @@ arduinoState executeArmedTest (boatVector * thisBoat, arduinoState lastState) {
 	
 	// check for low voltage
 	if (thisBoat->internalVoltage < serviceVoltageLimit) {
-		faultString |= FAULT_LOW_BAT;
+		thisBoat->faultString |= FAULT_LOW_BAT;
 		thisBoat->horn = LOW;
 		restInput.setEnable(AREST_ENB_VARIABLE | AREST_ENB_FUNCTION);
 		return BOAT_FAULT;
@@ -1143,7 +1143,7 @@ arduinoState executeArmedTest (boatVector * thisBoat, arduinoState lastState) {
 	
 	// check for packet timeout
 	if ((millis() - thisBoat->timeOfLastShoreHB) > armedPacketTimeout) {
-		faultString |= FAULT_NO_SIGNAL;
+		thisBoat->faultString |= FAULT_NO_SIGNAL;
 		thisBoat->horn = LOW;
 		restInput.setEnable(AREST_ENB_VARIABLE | AREST_ENB_FUNCTION);
 		return BOAT_FAULT;
@@ -1207,14 +1207,14 @@ arduinoState executeActive (boatVector * thisBoat, arduinoState lastState) {
 	
 	// check for low voltage
 	if (thisBoat->internalVoltage < serviceVoltageLimit) {
-		faultString |= FAULT_LOW_BAT;
+		thisBoat->faultString |= FAULT_LOW_BAT;
 		steeringPID.SetMode(MANUAL);
 		return BOAT_LOWBATTERY;
 	}
 	
 	// check for packet timeout
 	if ((millis() - thisBoat->timeOfLastBoneHB) > armedPacketTimeout) {
-		faultString |= FAULT_NO_SIGNAL;
+		thisBoat->faultString |= FAULT_NO_SIGNAL;
 		return BOAT_SELFRECOVERY;
 	}
 	
@@ -1260,13 +1260,13 @@ arduinoState executeActiveRudder (boatVector * thisBoat, arduinoState lastState)
 	
 	// check for low voltage
 	if (thisBoat->internalVoltage < serviceVoltageLimit) {
-		faultString |= FAULT_LOW_BAT;
+		thisBoat->faultString |= FAULT_LOW_BAT;
 		return BOAT_LOWBATTERY;
 	}
 	
 	// check for packet timeout
 	if ((millis() - thisBoat->timeOfLastShoreHB) > armedPacketTimeout) {
-		faultString |= FAULT_NO_SIGNAL;
+		thisBoat->faultString |= FAULT_NO_SIGNAL;
 		return BOAT_SELFRECOVERY;
 	}
 	
@@ -1282,7 +1282,7 @@ arduinoState executeActiveRudder (boatVector * thisBoat, arduinoState lastState)
 }
 
 arduinoState executeLowBattery (boatVector * thisBoat, arduinoState lastState) {
-	static boatState originState = BOAT_LOWBATTERY;
+	static arduinoState originState = BOAT_LOWBATTERY;
 	static long startStopTime = millis();
 
 	Serial.println("**** Low Battery ****");
@@ -1320,7 +1320,7 @@ arduinoState executeLowBattery (boatVector * thisBoat, arduinoState lastState) {
 	
 	// check for battery voltage
 	if (thisBoat->internalVoltage > recoverVoltageLimit) {
-		faultString &= ~FAULT_LOW_BAT;
+		thisBoat->faultString &= ~FAULT_LOW_BAT;
 		return originState;
 	}
 
@@ -1328,7 +1328,7 @@ arduinoState executeLowBattery (boatVector * thisBoat, arduinoState lastState) {
 }
 
 arduinoState executeSelfRecovery (boatVector * thisBoat, arduinoState lastState) {
-	static boatState originState = BOAT_SELFRECOVERY;
+	static arduinoState originState = BOAT_SELFRECOVERY;
 	static long startStopTime = millis();
 
 	LogSerial.println("**** SelfRecovery ****");
@@ -1360,7 +1360,7 @@ arduinoState executeSelfRecovery (boatVector * thisBoat, arduinoState lastState)
 	
 	// check for low voltage
 	if (thisBoat->internalVoltage < serviceVoltageLimit) {
-		faultString |= FAULT_LOW_BAT;
+		thisBoat->faultString |= FAULT_LOW_BAT;
 		steeringPID.SetMode(MANUAL);
 		return BOAT_LOWBATTERY;
 	}

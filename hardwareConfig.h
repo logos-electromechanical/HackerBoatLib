@@ -1,3 +1,7 @@
+
+#ifndef HACKERBOATLIB_HDW_h
+#define HACKERBOATLIB_HDW_h
+
 // steering and servo constants
 const double Kp_start 					= 5.0;
 const double Ki_start					= 0.25;
@@ -75,3 +79,5 @@ const uint32_t wht = Adafruit_NeoPixel::Color(0xff, 0xff, 0xff);	/**< pixel colo
 //const uint32_t ctrlTimeout =         1500000;
 //const uint16_t lowVoltCutoff =       750;
 //const uint8_t relayAux1 =      47;
+
+#endif

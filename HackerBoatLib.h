@@ -10,6 +10,9 @@
 #include "hardwareConfig.h"
 #include "sensorCalibration.h"
 
+#ifndef HACKERBOATLIB_h
+#define HACKERBOATLIB_h
+
 #define NUMBER_VARIABLES	30
 #define NUMBER_FUNCTIONS	20
 #include <aREST.h>
@@ -20,7 +23,7 @@
 #define FAULT_BB_FAULT	0x0008     	/**< Beaglebone fault bit   */
 #define FAULT_NVM		0x0010     	/**< NVM fault bit      */
 
-#define REST_ID			0xff
+#define REST_ID			"255"
 #define REST_NAME		"ArduinoHackerBoat"
 
 /**
@@ -193,7 +196,6 @@ typedef struct boatVector {
 	double			Kp;
 	double			Ki;
 	double			Kd;
-	double			headingCurrent;
 	double			pitch;
 	double			roll;
 	double 			magX;
@@ -271,3 +273,4 @@ arduinoState executeActiveRudder	(boatVector * thisBoat, arduinoState lastState)
 arduinoState executeLowBattery		(boatVector * thisBoat, arduinoState lastState);
 arduinoState executeSelfRecovery	(boatVector * thisBoat, arduinoState lastState);
 
+#endif
