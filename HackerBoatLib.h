@@ -17,14 +17,22 @@
 #define NUMBER_FUNCTIONS	20
 #include <aREST.h>
 
-#define FAULT_LOW_BAT	0x0001		/**< Low battery fault bit  */
-#define FAULT_SENSOR	0x0002     	/**< Sensor fault bit     */
-#define FAULT_NO_SIGNAL	0x0004     	/**< No signal fault bit  */
-#define FAULT_BB_FAULT	0x0008     	/**< Beaglebone fault bit   */
-#define FAULT_NVM		0x0010     	/**< NVM fault bit      */
+/**< Low battery fault bit  */
+#define FAULT_LOW_BAT	0x0001		
+/**< Sensor fault bit     	*/
+#define FAULT_SENSOR	0x0002   
+/**< No signal fault bit  	*/  	
+#define FAULT_NO_SIGNAL	0x0004     	
+/**< Beaglebone fault bit   */
+#define FAULT_BB_FAULT	0x0008   
+/**< NVM fault bit      	*/  	
+#define FAULT_NVM		0x0010     
 
 #define REST_ID			"255"
 #define REST_NAME		"ArduinoHackerBoat"
+
+#define ARDUINO_STATE_LEN	13
+#define BONE_STATE_LEN		19
 
 /**
  * @brief An enum to store the current state of the boat.
@@ -43,11 +51,19 @@ typedef enum arduinoState {
 	BOAT_NONE			= 10		/**< Provides a null value for no command yet received */
 } arduinoState;        
 
-const uint8_t arduinoStateCount = 11;
-const String arduinoStates[] = {"PowerUp", "Armed", "SelfTest", 
-								"Disarmed", "Active", "LowBattery", 
-								"Fault", "SelfRecovery", "ArmedTest", 
-								"ActiveRudder", "None"};
+const uint8_t arduinoStateCount PROGMEM = 11;
+const char arduinoStates[][ARDUINO_STATE_LEN] PROGMEM = {
+	"PowerUp", 
+	"Armed", 
+	"SelfTest", 
+	"Disarmed", 
+	"Active", 
+	"LowBattery", 
+	"Fault", 
+	"SelfRecovery", 
+	"ArmedTest", 
+	"ActiveRudder", 
+	"None"};
 						
 /**
  * @brief Beaglebone state
@@ -66,8 +82,8 @@ typedef enum boneState {
 	BONE_UNKNOWN		= 10		/**< State of the Beaglebone is currently unknown	*/
 } boneState;
 
-const uint8_t boneStateCount = 11;
-const String boneStates[] = {
+const uint8_t boneStateCount PROGMEM = 11;
+const char boneStates[][BONE_STATE_LEN] PROGMEM = {
 	"Start", 
 	"SelfTest", 
 	"Disarmed", 
@@ -77,7 +93,7 @@ const String boneStates[] = {
 	"WaypointNavigation",
 	"LossOfSignal", 
 	"ReturnToLaunch", 
-	"ArmedTest"
+	"ArmedTest",
 	"Unknown"
 };
 
@@ -172,49 +188,49 @@ typedef struct boatVector {
 	throttleState 	throttle;   			/**< The current throttle position                    */
 	boneState 		bone;					/**< The current state of the BeagleBone                */
 	sensors_vec_t 	orientation;			/**< The current accelerometer tilt and magnetic heading of the boat  */
-	double 			headingTarget;			/**< The desired magnetic heading                     */  
-	double 			internalVoltage;		/**< The battery voltage measured on the control PCB          */
-	double 			batteryVoltage;			/**< The battery voltage measured at the battery            */
-	double			motorVoltage;
-	int 			enbButton;				/**< State of the enable button. off = 0; on = 0xff           */
-	int		 		stopButton;				/**< State of the emergency stop button. off = 0; on = 0xff       */
+	float 			headingTarget;			/**< The desired magnetic heading                     */  
+	float 			internalVoltage;		/**< The battery voltage measured on the control PCB          */
+	float 			batteryVoltage;			/**< The battery voltage measured at the battery            */
+	float			motorVoltage;
+	uint8_t			enbButton;				/**< State of the enable button. off = 0; on = 0xff           */
+	uint8_t	 		stopButton;				/**< State of the emergency stop button. off = 0; on = 0xff       */
 	long 			timeSinceLastPacket;	/**< Number of milliseconds since the last command packet received    */
 	long 			timeOfLastPacket;		/**< Time the last packet arrived */
 	long 			timeOfLastBoneHB;	
 	long 			timeOfLastShoreHB;
-	String			stateString;
-	String 			boneStateString;
-	String			commandString;
+	char			stateString[ARDUINO_STATE_LEN];
+	char 			boneStateString[BONE_STATE_LEN];
+	char			commandString[ARDUINO_STATE_LEN];
 	uint8_t			faultString;			/**< Fault string -- binary string to indicate source of faults */
-	double 			headingCurrent;
-	double 			rudder;
-	int				rudderRaw;
-	int				internalVoltageRaw;
-	int				motorVoltageRaw;
-	double			motorCurrent;
-	int				motorCurrentRaw;
-	double			Kp;
-	double			Ki;
-	double			Kd;
-	double			pitch;
-	double			roll;
-	double 			magX;
-	double 			magY;
-	double 			magZ;
-	double 			accX;
-	double 			accY;
-	double 			accZ;
-	double 			gyroX;
-	double 			gyroY;
-	double 			gyroZ;
-	int 			horn;
-	int				motorDirRly;
-	int				motorWhtRly;
-	int				motorYlwRly;
-	int				motorRedRly;
-	int				motorRedWhtRly;
-	int				motorRedYlwRly;
-	int				servoPower;
+	float 			rudder;
+	uint16_t		rudderRaw;
+	uint16_t		internalVoltageRaw;
+	uint16_t		motorVoltageRaw;
+	float			motorCurrent;
+	uint16_t		motorCurrentRaw;
+	float			Kp;
+	float			Ki;
+	float			Kd;
+	float 			magX;
+	float 			magY;
+	float 			magZ;
+	float 			accX;
+	float 			accY;
+	float 			accZ;
+	float 			gyroX;
+	float 			gyroY;
+	float 			gyroZ;
+	uint8_t 		horn;
+	uint8_t			motorDirRly;
+	uint8_t			motorWhtRly;
+	uint8_t			motorYlwRly;
+	uint8_t			motorRedRly;
+	uint8_t			motorRedWhtRly;
+	uint8_t			motorRedYlwRly;
+	uint8_t			servoPower;
+	long 			startStopTime;
+	long			startStateTime;
+	arduinoState	originState;
 } boatVector;
 
 //////////////////////

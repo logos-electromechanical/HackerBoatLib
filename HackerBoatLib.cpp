@@ -5,12 +5,11 @@
 ///////////////////////////
 
 Servo steeringServo;			/**< Servo object corresponding to the steering servo           */
-double currentError;    		/**< Current heading error. This is a global so the PID can be as well  */
-double targetError 	= 0;		/**< Desired heading error. This is a global so the PID can be as well  */
-double steeringCmd;				/**< Steering command to be written out to the servo.           */
-PID steeringPID(&currentError, 	/**< PID loop object for driving the steering servo */
-				&(boat.rudder), 
-				&targetError, 
+float currentError;    		/**< Current heading error. This is a global so the PID can be as well  */
+float targetError 	= 0;		/**< Desired heading error. This is a global so the PID can be as well  */
+PID steeringPID((double *)&currentError, 	/**< PID loop object for driving the steering servo */
+				(double *)&(boat.rudder), 
+				(double *)&targetError, 
 				0, 0, 0, 
 				REVERSE); 
 Adafruit_9DOF 					dof			= Adafruit_9DOF();						/**< IMU object               */
@@ -24,7 +23,7 @@ Adafruit_NeoPixel 				boneLights 	= Adafruit_NeoPixel(boneLightCount, boneLights
 // local function declarations //
 /////////////////////////////////
 
-double 	getHeadingError (double heading, double headingSet);
+float 	getHeadingError (float heading, float headingSet);
 void 	lightControl(arduinoState state, boneState bone);
 void 	calibrateMag (sensors_event_t *magEvent);
 void 	calibrateAccel (sensors_event_t *accelEvent);
@@ -40,33 +39,33 @@ void 	setThrottle (boatVector * thisBoat);
 void initIO 	(void) {
 	LogSerial.begin(115200);
 	RESTSerial.begin(115200);
-	pinMode(servoEnable, OUTPUT);
-	pinMode(steeringPin, OUTPUT);
-	pinMode(relaySpeedWht, OUTPUT);
-	pinMode(relaySpeedWhtFB, INPUT);
-	pinMode(relaySpeedYlw, OUTPUT);
-	pinMode(relaySpeedYlwFB, INPUT);
-	pinMode(relaySpeedRed, OUTPUT);
-	pinMode(relaySpeedRedFB, INPUT);
-	pinMode(relaySpeedRedWht, OUTPUT);
+	pinMode(servoEnable, 		OUTPUT);
+	pinMode(steeringPin, 		OUTPUT);
+	pinMode(relaySpeedWht, 		OUTPUT);
+	pinMode(relaySpeedWhtFB, 	INPUT);
+	pinMode(relaySpeedYlw, 		OUTPUT);
+	pinMode(relaySpeedYlwFB, 	INPUT);
+	pinMode(relaySpeedRed, 		OUTPUT);
+	pinMode(relaySpeedRedFB, 	INPUT);
+	pinMode(relaySpeedRedWht, 	OUTPUT);
 	pinMode(relaySpeedRedWhtFB, INPUT); 
-	pinMode(relaySpeedRedYlw, OUTPUT);
+	pinMode(relaySpeedRedYlw, 	OUTPUT);
 	pinMode(relaySpeedRedYlwFB, INPUT);
-	pinMode(horn, OUTPUT);
-	pinMode(hornFB, INPUT);
-	pinMode(arduinoLightsPin, OUTPUT);
-	pinMode(boneLightsPin, OUTPUT);
-	pinMode(enableButton, INPUT);
-	pinMode(stopButton, INPUT);
+	pinMode(hornPin, 			OUTPUT);
+	pinMode(hornPinFB, 			INPUT);
+	pinMode(arduinoLightsPin, 	OUTPUT);
+	pinMode(boneLightsPin, 		OUTPUT);
+	pinMode(enableButtonPin, 	INPUT);
+	pinMode(stopButtonPin, 		INPUT);
 
-	digitalWrite(servoEnable, LOW);
-	digitalWrite(relayDir, LOW);
-	digitalWrite(relaySpeedWht, LOW);
-	digitalWrite(relaySpeedYlw, LOW);
-	digitalWrite(relaySpeedRed, LOW);
-	digitalWrite(relaySpeedRedWht, LOW);
-	digitalWrite(relaySpeedRedYlw, LOW);
-	digitalWrite(horn, LOW);
+	digitalWrite(servoEnable, 		LOW);
+	digitalWrite(relayDir, 			LOW);
+	digitalWrite(relaySpeedWht, 	LOW);
+	digitalWrite(relaySpeedYlw, 	LOW);
+	digitalWrite(relaySpeedRed, 	LOW);
+	digitalWrite(relaySpeedRedWht, 	LOW);
+	digitalWrite(relaySpeedRedYlw, 	LOW);
+	digitalWrite(hornPin, 			LOW);
 	//digitalWrite(relayAux1, LOW);
 
 	Serial.println("I live!");
@@ -101,64 +100,64 @@ void initREST 	(aREST * rest, boatVector * thisBoat) {
 	rest->set_name(REST_NAME);
 	
 	// Variable assignments
-	rest->variable("state", 				(int *)&(thisBoat->state));
-	rest->variable("boneState", 			(int *)&(thisBoat->bone));
-	rest->variable("command", 				(int *)&(thisBoat->command));
-	rest->variable("fault", 				(int *)&(thisBoat->faultString));
-	rest->variable("throttle", 				(int *)&(thisBoat->throttle));
-	rest->variable("headingTarget", 		&(thisBoat->headingTarget));
-	rest->variable("headingCurrent", 		&(thisBoat->headingCurrent));
-	rest->variable("rudder", 				&(thisBoat->rudder));
-	rest->variable("rudderRaw", 			&(thisBoat->rudderRaw));
-	rest->variable("internalVoltage", 		&(thisBoat->internalVoltage));
-	rest->variable("internalVoltageRaw", 	&(thisBoat->internalVoltageRaw));
-	rest->variable("motorVoltage", 			&(thisBoat->motorVoltage));
-	rest->variable("motorVoltageRaw", 		&(thisBoat->motorVoltageRaw));
-	rest->variable("motorCurrent", 			&(thisBoat->motorCurrent));
-	rest->variable("motorCurrentRaw", 		&(thisBoat->motorCurrentRaw));
-	rest->variable("Kp", 					&(thisBoat->Kp));
-	rest->variable("Ki", 					&(thisBoat->Ki));
-	rest->variable("Kd", 					&(thisBoat->Kd));
-	rest->variable("pitch", 				&(thisBoat->pitch));
-	rest->variable("roll", 					&(thisBoat->roll));
-	rest->variable("accX", 					&(thisBoat->accX));
-	rest->variable("accY", 					&(thisBoat->accY));
-	rest->variable("accZ", 					&(thisBoat->accZ));
-	rest->variable("magX", 					&(thisBoat->magX));
-	rest->variable("magY", 					&(thisBoat->magY));
-	rest->variable("magZ", 					&(thisBoat->magZ));
-	rest->variable("gyroX", 				&(thisBoat->gyroX));
-	rest->variable("gyroY", 				&(thisBoat->gyroY));
-	rest->variable("gyroZ", 				&(thisBoat->gyroZ));
-	rest->variable("startButton", 			&(thisBoat->enbButton));
-	rest->variable("stopButton", 			&(thisBoat->stopButton));
-	rest->variable("horn", 					&(thisBoat->horn));
-	rest->variable("motorDirRly", 			&(thisBoat->motorDirRly));
-	rest->variable("motorWhtRly", 			&(thisBoat->motorWhtRly));
-	rest->variable("motorYlwRly", 			&(thisBoat->motorYlwRly));
-	rest->variable("motorRedRly", 			&(thisBoat->motorRedRly));
-	rest->variable("motorRedWhtRly", 		&(thisBoat->motorRedWhtRly));
-	rest->variable("motorRedYlwRly", 		&(thisBoat->motorRedYlwRly));
+	rest->variable((char *)F("state"), 					(int *)&(thisBoat->state));
+	rest->variable((char *)F("boneState"), 				(int *)&(thisBoat->bone));
+	rest->variable((char *)F("command"), 				(int *)&(thisBoat->command));
+	rest->variable((char *)F("fault"), 					(int *)&(thisBoat->faultString));
+	rest->variable((char *)F("throttle"), 				(int *)&(thisBoat->throttle));
+	rest->variable((char *)F("headingTarget"), 			(float *)&(thisBoat->headingTarget));
+	rest->variable((char *)F("headingCurrent"), 		(float *)&(thisBoat->orientation.heading));
+	rest->variable((char *)F("rudder"), 				(float *)&(thisBoat->rudder));
+	rest->variable((char *)F("rudderRaw"), 				(int *)&(thisBoat->rudderRaw));
+	rest->variable((char *)F("internalVoltage"), 		&(thisBoat->internalVoltage));
+	rest->variable((char *)F("internalVoltageRaw"), 	(int *)&(thisBoat->internalVoltageRaw));
+	rest->variable((char *)F("motorVoltage"), 			&(thisBoat->motorVoltage));
+	rest->variable((char *)F("motorVoltageRaw"), 		(int *)&(thisBoat->motorVoltageRaw));
+	rest->variable((char *)F("motorCurrent"), 			&(thisBoat->motorCurrent));
+	rest->variable((char *)F("motorCurrentRaw"), 		(int *)&(thisBoat->motorCurrentRaw));
+	rest->variable((char *)F("Kp"), 					(float *)&(thisBoat->Kp));
+	rest->variable((char *)F("Ki"), 					(float *)&(thisBoat->Ki));
+	rest->variable((char *)F("Kd"), 					(float *)&(thisBoat->Kd));
+	rest->variable((char *)F("pitch"), 					&(thisBoat->orientation.pitch));
+	rest->variable((char *)F("roll"), 					&(thisBoat->orientation.roll));
+	rest->variable((char *)F("accX"), 					&(thisBoat->accX));
+	rest->variable((char *)F("accY"), 					&(thisBoat->accY));
+	rest->variable((char *)F("accZ"), 					&(thisBoat->accZ));
+	rest->variable((char *)F("magX"), 					&(thisBoat->magX));
+	rest->variable((char *)F("magY"), 					&(thisBoat->magY));
+	rest->variable((char *)F("magZ"), 					&(thisBoat->magZ));
+	rest->variable((char *)F("gyroX"), 					&(thisBoat->gyroX));
+	rest->variable((char *)F("gyroY"), 					&(thisBoat->gyroY));
+	rest->variable((char *)F("gyroZ"), 					&(thisBoat->gyroZ));
+	rest->variable((char *)F("startButton"), 			(int *)&(thisBoat->enbButton));
+	rest->variable((char *)F("stopButton"), 			(int *)&(thisBoat->stopButton));
+	rest->variable((char *)F("horn"), 					(int *)&(thisBoat->horn));
+	rest->variable((char *)F("motorDirRly"), 			(int *)&(thisBoat->motorDirRly));
+	rest->variable((char *)F("motorWhtRly"), 			(int *)&(thisBoat->motorWhtRly));
+	rest->variable((char *)F("motorYlwRly"), 			(int *)&(thisBoat->motorYlwRly));
+	rest->variable((char *)F("motorRedRly"), 			(int *)&(thisBoat->motorRedRly));
+	rest->variable((char *)F("motorRedWhtRly"), 		(int *)&(thisBoat->motorRedWhtRly));
+	rest->variable((char *)F("motorRedYlwRly"), 		(int *)&(thisBoat->motorRedYlwRly));
 		
 	// function assignments
-	rest->function("writeBoneState", 		writeBoneState);
-	rest->function("writeCommand", 			writeCommand);
-	rest->function("writeThrottle", 		writeThrottle);
-	rest->function("writeHeadingTarget", 	writeHeadingTarget);
-	rest->function("writeHeadingDelta", 	writeHeadingDelta);
-	rest->function("writeRudder", 			writeRudder);
-	rest->function("writeKp", 				writeKp);
-	rest->function("writeKi", 				writeKi);
-	rest->function("writeKd", 				writeKd);
-	rest->function("writeHorn", 			writeHorn);
-	rest->function("writeMotorDirRly", 		writeMotorDirRly);
-	rest->function("writemotorWhtRly", 		writeMotorWhtRly);
-	rest->function("writemotorYlwRly", 		writeMotorYlwRly);
-	rest->function("writemotorRedRly", 		writeMotorRedRly);
-	rest->function("writemotorRedWhtRly", 	writeMotorRedWhtRly);
-	rest->function("writemotorRedYlwRly", 	writeMotorRedYlwRly);
-	rest->function("boneHeartBeat", 		boneHeartBeat);
-	rest->function("shoreHeartBeat", 		boneHeartBeat);
+	rest->function((char *)F("writeBoneState"), 		writeBoneState);
+	rest->function((char *)F("writeCommand"), 			writeCommand);
+	rest->function((char *)F("writeThrottle"), 			writeThrottle);
+	rest->function((char *)F("writeHeadingTarget"), 	writeHeadingTarget);
+	rest->function((char *)F("writeHeadingDelta"), 		writeHeadingDelta);
+	rest->function((char *)F("writeRudder"), 			writeRudder);
+	rest->function((char *)F("writeKp"), 				writeKp);
+	rest->function((char *)F("writeKi"), 				writeKi);
+	rest->function((char *)F("writeKd"), 				writeKd);
+	rest->function((char *)F("writeHorn"), 				writeHorn);
+	rest->function((char *)F("writeMotorDirRly"), 		writeMotorDirRly);
+	rest->function((char *)F("writemotorWhtRly"), 		writeMotorWhtRly);
+	rest->function((char *)F("writemotorYlwRly"), 		writeMotorYlwRly);
+	rest->function((char *)F("writemotorRedRly"), 		writeMotorRedRly);
+	rest->function((char *)F("writemotorRedWhtRly"), 	writeMotorRedWhtRly);
+	rest->function((char *)F("writemotorRedYlwRly"), 	writeMotorRedYlwRly);
+	rest->function((char *)F("boneHeartBeat"), 			boneHeartBeat);
+	rest->function((char *)F("shoreHeartBeat"), 		boneHeartBeat);
 }
 
 /**
@@ -171,9 +170,9 @@ void initBoat	(boatVector * thisBoat) {
 	thisBoat->bone				= BONE_UNKNOWN;
 	thisBoat->faultString		= LOW;
 	thisBoat->rudder 			= LOW;
-	thisBoat->stateString 		= arduinoStates[thisBoat->state];
-	thisBoat->commandString		= arduinoStates[thisBoat->command];
-	thisBoat->boneStateString	= boneStates[thisBoat->bone];
+	strcpy(thisBoat->stateString, arduinoStates[thisBoat->state]);
+	strcpy(thisBoat->commandString, arduinoStates[thisBoat->command]);
+	strcpy(thisBoat->boneStateString, boneStates[thisBoat->bone]);
 	thisBoat->Kp				= Kp_start;
 	thisBoat->Ki				= Ki_start;
 	thisBoat->Kd				= Kd_start;
@@ -212,9 +211,6 @@ void input (boatVector * thisBoat) {
 	dof.accelGetOrientation(&accel_event, &(thisBoat->orientation));
 	dof.magTiltCompensation(SENSOR_AXIS_Z, &mag_event, &accel_event);
 	dof.magGetOrientation(SENSOR_AXIS_Z, &mag_event, &(thisBoat->orientation));
-	thisBoat->headingCurrent 	= thisBoat->orientation.heading;
-	thisBoat->pitch				= thisBoat->orientation.pitch;
-	thisBoat->roll				= thisBoat->orientation.roll;
 	thisBoat->magX				= mag_event.magnetic.x;
 	thisBoat->magY				= mag_event.magnetic.y;
 	thisBoat->magZ				= mag_event.magnetic.z;
@@ -226,8 +222,8 @@ void input (boatVector * thisBoat) {
 	thisBoat->gyroZ				= gyro_event.gyro.z;
 	
 	// read digital inputs
-	thisBoat->enbButton 		= digitalRead(enableButton);
-	thisBoat->stopButton 		= digitalRead(stopButton);
+	thisBoat->enbButton 		= digitalRead(enableButtonPin);
+	thisBoat->stopButton 		= digitalRead(stopButtonPin);
 	
 	// read analog inputs
 	thisBoat->internalVoltageRaw 	= analogRead(internalBatVolt);
@@ -281,8 +277,8 @@ void output (boatVector * thisBoat) {
  *  @return heading error, adjusted for the fact that it's circular.
  *
  */
-double getHeadingError (double heading, double headingSet) {
-  double result = headingSet - heading;
+float getHeadingError (float heading, float headingSet) {
+  float result = headingSet - heading;
   
   if (result > 180) {result -= 360;}
   if (result < -180) {result += 360;}
@@ -626,12 +622,12 @@ int writeBoneState (String params) {
 	for (uint8_t i = 0; i < boneStateCount; i++) {
 		if(params.equals(boneStates[i])) {
 			boat.bone = (boneState)i;
-			boat.boneStateString = boneStates[i];
+			strcpy(boat.boneStateString, boneStates[i]);
 			return 0;
 		}
 	}
 	boat.bone = BONE_UNKNOWN;
-	boat.boneStateString = boneStates[BONE_UNKNOWN];
+	strcpy(boat.boneStateString, boneStates[BONE_UNKNOWN]);
 	return -1;
 }
 
@@ -639,12 +635,12 @@ int writeCommand (String params) {
 	for (uint8_t i = 0; i < arduinoStateCount; i++) {
 		if(params.equals(arduinoStates[i])) {
 			boat.command = (arduinoState)i;
-			boat.commandString = arduinoStates[i];
+			strcpy(boat.commandString, arduinoStates[i]);
 			return 0;
 		}
 	}
 	boat.command = BOAT_NONE;
-	boat.commandString = arduinoStates[BOAT_NONE];
+	strcpy(boat.commandString, arduinoStates[BOAT_NONE]);
 	return -1;
 }
 
@@ -854,26 +850,22 @@ arduinoState executePowerUp (boatVector * thisBoat, arduinoState lastState) {
 
 arduinoState executeSelfTest (boatVector * thisBoat, arduinoState lastState) {
 	static uint8_t faultCnt = 0;
-	static double headingRef;
-	static long startTime = millis();
 	static uint8_t headingFaultCnt = 0;
 	static uint8_t accelFaultCnt = 0;
 	static uint8_t gyroFaultCnt = 0;
 	static uint8_t signalFaultCnt = 0;
-	arduinoState myState = BOAT_DISARMED;
-	throttleState myThrottle = STOP;
 
-	LogSerial.println("**** Self-testing... ****");
+	LogSerial.println(F("**** Self-testing... ****"));
 
 	// if we've just entered this state, reset all the counters
 	if (lastState != BOAT_SELFTEST) {
 		faultCnt = 0; 
-		headingRef = thisBoat->orientation.heading;
+		thisBoat->headingTarget = thisBoat->orientation.heading;
 		headingFaultCnt = 0;
 		accelFaultCnt = 0;
 		gyroFaultCnt = 0;
 		signalFaultCnt = 0;
-		startTime = millis();
+		thisBoat->startStateTime = millis();
 	}
 	
 	// Power down all relays, power up the servo, and center the rudder
@@ -899,7 +891,7 @@ arduinoState executeSelfTest (boatVector * thisBoat, arduinoState lastState) {
 	}
 	
 	// check the orientation
-	if ((millis() - startTime) < sensorTestPeriod) {
+	if ((millis() - thisBoat->timeOfLastPacket) < sensorTestPeriod) {
 		if ((thisBoat->orientation.roll > tiltDeviationLimit) || (thisBoat->orientation.pitch > tiltDeviationLimit)) {
 			faultCnt++;
 			LogSerial.print("Sensor outside of roll/pitch limits. Measure values roll: ");
@@ -908,13 +900,13 @@ arduinoState executeSelfTest (boatVector * thisBoat, arduinoState lastState) {
 			LogSerial.println(thisBoat->orientation.pitch);
 			thisBoat->faultString |= FAULT_SENSOR;
 		}
-		if (abs(getHeadingError(thisBoat->orientation.heading, headingRef)) > compassDeviationLimit) {
+		if (abs(getHeadingError(thisBoat->orientation.heading, thisBoat->headingTarget)) > compassDeviationLimit) {
 			LogSerial.print("Compass outside of deviation limits. Compass heading: ");
 			LogSerial.print(thisBoat->orientation.heading);
 			LogSerial.print(" Reference: ");
-			LogSerial.print(headingRef);
+			LogSerial.print(thisBoat->headingTarget);
 			LogSerial.print(" Error: ");
-			LogSerial.println(getHeadingError(thisBoat->orientation.heading, headingRef));
+			LogSerial.println(getHeadingError(thisBoat->orientation.heading, thisBoat->headingTarget));
 			faultCnt++;
 			thisBoat->faultString |= FAULT_SENSOR;
 		}
@@ -948,7 +940,7 @@ arduinoState executeSelfTest (boatVector * thisBoat, arduinoState lastState) {
 	}
 	
 	// Check for the end of the test
-	if ((millis() - startTime) > startupTestPeriod) {
+	if ((millis() - thisBoat->startStateTime) > startupTestPeriod) {
 		if (faultCnt) {
 			LogSerial.print("Got faults on startup. Fault string: ");
 			LogSerial.println(thisBoat->faultString, HEX);
@@ -962,10 +954,9 @@ arduinoState executeSelfTest (boatVector * thisBoat, arduinoState lastState) {
 }
 
 arduinoState executeDisarmed (boatVector * thisBoat, arduinoState lastState) {
-	static bool lastEnbButton = false;
-	static long startEnbTime = millis();
+	static long startEnbTime;
 
-	LogSerial.println("**** Disarmed ****");
+	LogSerial.println(F("**** Disarmed ****"));
 	
 	// Power down all relays & the servo, and center the rudder
 	thisBoat->motorDirRly 		= LOW;
@@ -982,12 +973,9 @@ arduinoState executeDisarmed (boatVector * thisBoat, arduinoState lastState) {
 	thisBoat->headingTarget = thisBoat->orientation.heading;
 	
 	// check button state
-	if (thisBoat->enbButton && !(lastEnbButton)) {
-		startEnbTime = millis();
-	} else if (!(thisBoat->enbButton)) {
+	if (!(thisBoat->enbButton)) {
 		startEnbTime = millis();
 	}
-	lastEnbButton = thisBoat->enbButton;
    
 	// determine next state
 	if ((millis() - startEnbTime) > enbButtonTime) return BOAT_ARMED;
@@ -1004,7 +992,7 @@ arduinoState executeDisarmed (boatVector * thisBoat, arduinoState lastState) {
 
 arduinoState executeFault (boatVector * thisBoat, arduinoState lastState) {
 
-	LogSerial.println("**** Fault ****");
+	LogSerial.println(F("**** Fault ****"));
 	
 	// Power down all relays & the servo, and center the rudder
 	thisBoat->motorDirRly 		= LOW;
@@ -1031,11 +1019,8 @@ arduinoState executeFault (boatVector * thisBoat, arduinoState lastState) {
 }
 
 arduinoState executeArmed (boatVector * thisBoat, arduinoState lastState) {
-	static long startStopTime = millis();
-	static long startStateTime = millis();
-	static arduinoState originState = BOAT_DISARMED;
 
-	LogSerial.println("**** Armed ****");
+	LogSerial.println(F("**** Armed ****"));
 	
 	// Power down all relays & the servo, and center the rudder
 	thisBoat->motorDirRly 		= LOW;
@@ -1050,18 +1035,18 @@ arduinoState executeArmed (boatVector * thisBoat, arduinoState lastState) {
 	
 	// if we've just entered this state, reset all the counters and turn on the horn
 	if (lastState != BOAT_ARMED) {
-		startStateTime 			= millis();
-		originState 			= lastState;
-		thisBoat->horn 			= HIGH;
+		thisBoat->startStateTime 	= millis();
+		thisBoat->originState 		= lastState;
+		thisBoat->horn 				= HIGH;
 	}
 	
 	// check for the stop button
 	if (!(thisBoat->stopButton)) {	
 		// This resets the timer every time this state executes without the button pressed
 		// As soon as the button is pressed, this is no longer reset and the timer runs.
-		startStopTime = millis();
+		thisBoat->startStopTime = millis();
 	}
-	if ((millis() - startStopTime) > stopButtonTime) return BOAT_DISARMED;
+	if ((millis() - thisBoat->startStopTime) > stopButtonTime) return BOAT_DISARMED;
 	
 	// check for low voltage
 	if (thisBoat->internalVoltage < serviceVoltageLimit) {
@@ -1080,7 +1065,7 @@ arduinoState executeArmed (boatVector * thisBoat, arduinoState lastState) {
 	// Check to see if we came from a safe state and whether or not the horn timeout is over.
 	// If we came from a safe state and the horn timeout is not over, sound the horn and reject
 	// commands. 
-	if (((millis() - startStateTime) < hornTimeout) && (BOAT_DISARMED == originState)) {
+	if (((millis() - thisBoat->startStateTime) < hornTimeout) && (BOAT_DISARMED == thisBoat->originState)) {
 		thisBoat->horn = HIGH;
 		return BOAT_ARMED;
 	} else {
@@ -1102,14 +1087,12 @@ arduinoState executeArmed (boatVector * thisBoat, arduinoState lastState) {
 }
 
 arduinoState executeArmedTest (boatVector * thisBoat, arduinoState lastState) {
-	static long startStopTime = millis();
-	static long startStateTime = millis();
 
-	LogSerial.println("**** ArmedTest ****");
+	LogSerial.println(F("**** ArmedTest ****"));
 	
 	// reset timers & relays upon state entry
 	if (lastState != BOAT_ARMEDTEST) {
-		startStateTime 				= millis();
+		thisBoat->startStateTime 	= millis();
 		thisBoat->horn 				= HIGH;
 		thisBoat->motorDirRly 		= LOW;
 		thisBoat->motorWhtRly 		= LOW;
@@ -1126,9 +1109,9 @@ arduinoState executeArmedTest (boatVector * thisBoat, arduinoState lastState) {
 	if (!(thisBoat->stopButton)) {	
 		// This resets the timer every time this state executes without the button pressed
 		// As soon as the button is pressed, this is no longer reset and the timer runs.
-		startStopTime = millis();
+		thisBoat->startStopTime = millis();
 	}
-	if ((millis() - startStopTime) > stopButtonTime) {		
+	if ((millis() - thisBoat->startStopTime) > stopButtonTime) {		
 		restInput.setEnable(AREST_ENB_VARIABLE | AREST_ENB_FUNCTION);
 		return BOAT_DISARMED;
 	}
@@ -1152,7 +1135,7 @@ arduinoState executeArmedTest (boatVector * thisBoat, arduinoState lastState) {
 	// Check to see if we came from a safe state and whether or not the horn timeout is over.
 	// If we came from a safe state and the horn timeout is not over, sound the horn and reject
 	// commands. 
-	if ((millis() - startStateTime) < hornTimeout) {
+	if ((millis() - thisBoat->startStateTime) < hornTimeout) {
 		thisBoat->horn = HIGH;
 		return BOAT_ARMEDTEST;
 	} else {
@@ -1169,9 +1152,8 @@ arduinoState executeArmedTest (boatVector * thisBoat, arduinoState lastState) {
 }
 
 arduinoState executeActive (boatVector * thisBoat, arduinoState lastState) {
-	static long startStopTime = millis();
 
-	LogSerial.println("**** Active ****");
+	LogSerial.println(F("**** Active ****"));
 	
 	if (lastState != BOAT_ACTIVE) {
 		thisBoat->horn 				= LOW;
@@ -1190,9 +1172,9 @@ arduinoState executeActive (boatVector * thisBoat, arduinoState lastState) {
 	if (!(thisBoat->stopButton)) {	
 		// This resets the timer every time this state executes without the button pressed
 		// As soon as the button is pressed, this is no longer reset and the timer runs.
-		startStopTime = millis();
+		thisBoat->startStopTime = millis();
 	}
-	if ((millis() - startStopTime) > stopButtonTime) {		
+	if ((millis() - thisBoat->startStopTime) > stopButtonTime) {		
 		steeringPID.SetMode(MANUAL);
 		return BOAT_DISARMED;
 	}
@@ -1232,9 +1214,8 @@ arduinoState executeActive (boatVector * thisBoat, arduinoState lastState) {
 }
 
 arduinoState executeActiveRudder (boatVector * thisBoat, arduinoState lastState)  {
-	static long startStopTime = millis();
 
-	LogSerial.println("**** ActiveRudder ****");
+	LogSerial.println(F("**** ActiveRudder ****"));
 	
 	if (lastState != BOAT_ACTIVERUDDER) {
 		thisBoat->horn 				= LOW;
@@ -1252,9 +1233,9 @@ arduinoState executeActiveRudder (boatVector * thisBoat, arduinoState lastState)
 	if (!(thisBoat->stopButton)) {	
 		// This resets the timer every time this state executes without the button pressed
 		// As soon as the button is pressed, this is no longer reset and the timer runs.
-		startStopTime = millis();
+		thisBoat->startStopTime = millis();
 	}
-	if ((millis() - startStopTime) > stopButtonTime) {	
+	if ((millis() - thisBoat->startStopTime) > stopButtonTime) {	
 		return BOAT_DISARMED;
 	}
 	
@@ -1282,10 +1263,8 @@ arduinoState executeActiveRudder (boatVector * thisBoat, arduinoState lastState)
 }
 
 arduinoState executeLowBattery (boatVector * thisBoat, arduinoState lastState) {
-	static arduinoState originState = BOAT_LOWBATTERY;
-	static long startStopTime = millis();
 
-	Serial.println("**** Low Battery ****");
+	Serial.println(F("**** Low Battery ****"));
 	
 	// Power down all relays & the servo, and center the rudder
 	thisBoat->motorDirRly 		= LOW;
@@ -1304,34 +1283,32 @@ arduinoState executeLowBattery (boatVector * thisBoat, arduinoState lastState) {
 			(BOAT_ACTIVE == lastState) ||
 			(BOAT_ACTIVERUDDER == lastState) ||
 			(BOAT_SELFRECOVERY == lastState)) {
-				originState = lastState;
-		} else originState = BOAT_DISARMED;
+				thisBoat->originState = lastState;
+		} else thisBoat->originState = BOAT_DISARMED;
 	}
 	
 	// check for the stop button
 	if (!(thisBoat->stopButton)) {	
 		// This resets the timer every time this state executes without the button pressed
 		// As soon as the button is pressed, this is no longer reset and the timer runs.
-		startStopTime = millis();
+		thisBoat->startStopTime = millis();
 	}
-	if ((millis() - startStopTime) > stopButtonTime) {	
+	if ((millis() - thisBoat->startStopTime) > stopButtonTime) {	
 		return BOAT_DISARMED;
 	}
 	
 	// check for battery voltage
 	if (thisBoat->internalVoltage > recoverVoltageLimit) {
 		thisBoat->faultString &= ~FAULT_LOW_BAT;
-		return originState;
+		return thisBoat->originState;
 	}
 
 	return BOAT_LOWBATTERY;
 }
 
 arduinoState executeSelfRecovery (boatVector * thisBoat, arduinoState lastState) {
-	static arduinoState originState = BOAT_SELFRECOVERY;
-	static long startStopTime = millis();
-
-	LogSerial.println("**** SelfRecovery ****");
+	
+	LogSerial.println(F("**** SelfRecovery ****"));
 	
 	if (lastState != BOAT_SELFRECOVERY) {
 		thisBoat->horn 				= LOW;
@@ -1351,9 +1328,9 @@ arduinoState executeSelfRecovery (boatVector * thisBoat, arduinoState lastState)
 	if (!(thisBoat->stopButton)) {	
 		// This resets the timer every time this state executes without the button pressed
 		// As soon as the button is pressed, this is no longer reset and the timer runs.
-		startStopTime = millis();
+		thisBoat->startStopTime = millis();
 	}
-	if ((millis() - startStopTime) > stopButtonTime) {		
+	if ((millis() - thisBoat->startStopTime) > stopButtonTime) {		
 		steeringPID.SetMode(MANUAL);
 		return BOAT_DISARMED;
 	}
@@ -1370,14 +1347,14 @@ arduinoState executeSelfRecovery (boatVector * thisBoat, arduinoState lastState)
 		if ((BOAT_ARMED == lastState) || 
 			(BOAT_ACTIVE == lastState) ||
 			(BOAT_ACTIVERUDDER == lastState)) {
-				originState = lastState;
-		} else originState = BOAT_DISARMED;
+				thisBoat->originState = lastState;
+		} else thisBoat->originState = BOAT_DISARMED;
 	}
 	
 	// check for heartbeat...
 	if ((millis() - thisBoat->timeOfLastBoneHB) < armedPacketTimeout) {
 		steeringPID.SetMode(MANUAL);
-		return originState;
+		return thisBoat->originState;
 	}
 	
 	return BOAT_SELFRECOVERY;
