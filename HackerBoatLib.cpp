@@ -205,7 +205,7 @@ void input (boatVector * thisBoat) {
 	// get & process the IMU data
 	accel.getEvent(&accel_event);
 	mag.getEvent(&mag_event);
-	gyro.getEvent(&gyro_event);
+	//gyro.getEvent(&gyro_event);
 	calibrateMag(&mag_event);
 	calibrateAccel(&accel_event);
 	dof.accelGetOrientation(&accel_event, &(thisBoat->orientation));

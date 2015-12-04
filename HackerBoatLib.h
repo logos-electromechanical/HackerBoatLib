@@ -13,8 +13,9 @@
 #ifndef HACKERBOATLIB_h
 #define HACKERBOATLIB_h
 
-#define NUMBER_VARIABLES	30
-#define NUMBER_FUNCTIONS	20
+#define NUMBER_VARIABLES	21
+#define NUMBER_FUNCTIONS	19
+#define CHAR_STRINGS	
 #include <aREST.h>
 
 /**< Low battery fault bit  */
