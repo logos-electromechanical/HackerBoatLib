@@ -158,6 +158,7 @@ void initREST 	(aREST * rest, boatVector * thisBoat) {
 	rest->function((char *)F("writemotorRedYlwRly"), 	writeMotorRedYlwRly);
 	rest->function((char *)F("boneHeartBeat"), 			boneHeartBeat);
 	rest->function((char *)F("shoreHeartBeat"), 		boneHeartBeat);
+	rest->function((char *)F("dumpState"),				dumpState);
 }
 
 /**
@@ -235,11 +236,13 @@ void input (boatVector * thisBoat) {
 	thisBoat->batteryVoltage		= 0;
 
 	// read REST
-	if (restInput.handle(RESTSerial)) {
-		thisBoat->timeSinceLastPacket = 0;
-		thisBoat->timeOfLastPacket = millis();
-	} else {
-		thisBoat->timeSinceLastPacket = millis() - thisBoat->timeOfLastPacket;
+	while (RESTSerial.available()) {
+		if (restInput.handle(RESTSerial)) {
+			thisBoat->timeSinceLastPacket = 0;
+			thisBoat->timeOfLastPacket = millis();
+		} else {
+			thisBoat->timeSinceLastPacket = millis() - thisBoat->timeOfLastPacket;
+		}
 	}
 	
 	// print to log
@@ -829,6 +832,112 @@ int	shoreHeartBeat (String params) {
 	boat.timeOfLastShoreHB = millis();
 	return 0;
 
+}
+
+int dumpState (String params) {
+	restInput.addToBuffer(F("\"state\":"));
+	restInput.addToBuffer(boat.state);
+	restInput.addToBuffer(F(",\"command\":"));
+	restInput.addToBuffer(boat.command);
+	restInput.addToBuffer(F(",\"throttle\":"));
+	restInput.addToBuffer(boat.throttle);
+	restInput.addToBuffer(F(",\n\"boneState\":"));
+	restInput.addToBuffer(boat.bone);
+	restInput.addToBuffer(F(",\n\"currentHeading\":"));
+	restInput.addToBuffer(boat.orientation.heading);
+	restInput.addToBuffer(F(",\n\"headingTarget\":"));
+	restInput.addToBuffer(boat.headingTarget);
+	restInput.addToBuffer(F(",\n\"pitch\":"));
+	restInput.addToBuffer(boat.orientation.pitch);
+	restInput.addToBuffer(F(",\n\"roll\":"));
+	restInput.addToBuffer(boat.orientation.roll);
+	restInput.addToBuffer(F(",\n\"internalVoltage\":"));
+	restInput.addToBuffer(boat.internalVoltage);
+	restInput.addToBuffer(F(",\n\"batteryVoltage\":"));
+	restInput.addToBuffer(boat.batteryVoltage);
+	restInput.addToBuffer(F(",\n\"motorVoltage\":"));
+	restInput.addToBuffer(boat.motorVoltage);
+	restInput.addToBuffer(F(",\n\"enbButton\":"));
+	restInput.addToBuffer(boat.enbButton);
+	restInput.addToBuffer(F(",\n\"stopButton\":"));
+	restInput.addToBuffer(boat.stopButton);
+	restInput.addToBuffer(F(",\n\"timeSinceLastPacket\":"));
+	restInput.addToBuffer(boat.timeSinceLastPacket);
+	restInput.addToBuffer(F(",\n\"timeOfLastPacket\":"));
+	restInput.addToBuffer(boat.timeOfLastPacket);
+	restInput.addToBuffer(F(",\n\"timeOfLastBoneHB\":"));
+	restInput.addToBuffer(boat.timeOfLastBoneHB);
+	restInput.addToBuffer(F(",\n\"timeOfLastShoreHB\":"));
+	restInput.addToBuffer(boat.timeOfLastShoreHB);
+	restInput.addToBuffer(F(",\n\"stateString\":"));
+	restInput.addToBuffer(boat.stateString);
+	restInput.addToBuffer(F(",\n\"boneStateString\":"));
+	restInput.addToBuffer(boat.boneStateString);
+	restInput.addToBuffer(F(",\n\"commandString\":"));
+	restInput.addToBuffer(boat.commandString);
+	restInput.addToBuffer(F(",\n\"faultString\":"));
+	restInput.addToBuffer(boat.faultString);
+	restInput.addToBuffer(F(",\n\"rudder\":"));
+	restInput.addToBuffer(boat.rudder);
+	restInput.addToBuffer(F(",\n\"rudderRaw\":"));
+	restInput.addToBuffer(boat.rudderRaw);
+	restInput.addToBuffer(F(",\n\"internalVoltageRaw\":"));
+	restInput.addToBuffer(boat.internalVoltageRaw);
+	restInput.addToBuffer(F(",\n\"motorVoltageRaw\":"));
+	restInput.addToBuffer(boat.motorVoltageRaw);
+	restInput.addToBuffer(F(",\n\"motorCurrent\":"));
+	restInput.addToBuffer(boat.motorCurrent);
+	restInput.addToBuffer(F(",\n\"motorCurrentRaw\":"));
+	restInput.addToBuffer(boat.motorCurrentRaw);
+	restInput.addToBuffer(F(",\n\"Kp\":"));
+	restInput.addToBuffer(boat.Kp);
+	restInput.addToBuffer(F(",\n\"Ki\":"));
+	restInput.addToBuffer(boat.Ki);
+	restInput.addToBuffer(F(",\n\"Kd\":"));
+	restInput.addToBuffer(boat.Kd);
+	restInput.addToBuffer(F(",\n\"magX\":"));
+	restInput.addToBuffer(boat.magX);
+	restInput.addToBuffer(F(",\n\"magY\":"));
+	restInput.addToBuffer(boat.magY);
+	restInput.addToBuffer(F(",\n\"magZ\":"));
+	restInput.addToBuffer(boat.magZ);
+	restInput.addToBuffer(F(",\n\"accX\":"));
+	restInput.addToBuffer(boat.accX);
+	restInput.addToBuffer(F(",\n\"accY\":"));
+	restInput.addToBuffer(boat.accY);
+	restInput.addToBuffer(F(",\n\"accZ\":"));
+	restInput.addToBuffer(boat.accZ);
+	restInput.addToBuffer(F(",\n\"gyroX\":"));
+	restInput.addToBuffer(boat.gyroX);
+	restInput.addToBuffer(F(",\n\"gyroY\":"));
+	restInput.addToBuffer(boat.gyroY);
+	restInput.addToBuffer(F(",\n\"gyroZ\":"));
+	restInput.addToBuffer(boat.gyroZ);
+	restInput.addToBuffer(F(",\n\"horn\":"));
+	restInput.addToBuffer(boat.horn);
+	restInput.addToBuffer(F(",\n\"motorDirRly\":"));
+	restInput.addToBuffer(boat.motorDirRly);
+	restInput.addToBuffer(F(",\n\"motorWhtRly\":"));
+	restInput.addToBuffer(boat.motorWhtRly);
+	restInput.addToBuffer(F(",\n\"motorYlwRly\":"));
+	restInput.addToBuffer(boat.motorYlwRly);
+	restInput.addToBuffer(F(",\n\"motorRedRly\":"));
+	restInput.addToBuffer(boat.motorRedRly);
+	restInput.addToBuffer(F(",\n\"motorRedWhtRly\":"));
+	restInput.addToBuffer(boat.motorRedWhtRly);
+	restInput.addToBuffer(F(",\n\"motorRedYlwRly\":"));
+	restInput.addToBuffer(boat.motorRedYlwRly);
+	restInput.addToBuffer(F(",\n\"servoPower\":"));
+	restInput.addToBuffer(boat.servoPower);
+	restInput.addToBuffer(F(",\n\"startStopTime\":"));
+	restInput.addToBuffer(boat.startStopTime);
+	restInput.addToBuffer(F(",\n\"startStateTime\":"));
+	restInput.addToBuffer(boat.startStateTime);
+	restInput.addToBuffer(F(",\n\"originState\":"));
+	restInput.addToBuffer((uint8_t)boat.originState);
+	restInput.addToBuffer(F(",\n"));
+	
+	return 0;
 }
 
 ////////////////////////////////

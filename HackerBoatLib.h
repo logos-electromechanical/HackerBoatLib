@@ -274,6 +274,7 @@ int writeMotorRedYlwRly (String params);
 int writeServoPower		(String params);
 int	boneHeartBeat		(String params);
 int	shoreHeartBeat		(String params);
+int dumpState			(String params);
 
 /////////////////////////////////
 // state function declarations //
