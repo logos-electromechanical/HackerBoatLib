@@ -4,6 +4,8 @@
 // file global variables //
 ///////////////////////////
 
+extern aREST 					restInput;
+extern boatVector 				boat;	
 Servo steeringServo;			/**< Servo object corresponding to the steering servo           */
 float currentError;    		/**< Current heading error. This is a global so the PID can be as well  */
 float targetError 	= 0;		/**< Desired heading error. This is a global so the PID can be as well  */
@@ -18,6 +20,8 @@ Adafruit_LSM303_Mag_Unified   	mag			= Adafruit_LSM303_Mag_Unified(30302);   /**
 Adafruit_L3GD20_Unified 		gyro		= Adafruit_L3GD20_Unified(20);			/**< Gyro object */
 Adafruit_NeoPixel 				ardLights 	= Adafruit_NeoPixel(ardLightCount, arduinoLightsPin,  NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel 				boneLights 	= Adafruit_NeoPixel(boneLightCount, boneLightsPin,  NEO_GRB + NEO_KHZ800);
+		
+
 
 /////////////////////////////////
 // local function declarations //
@@ -68,7 +72,8 @@ void initIO 	(void) {
 	digitalWrite(hornPin, 			LOW);
 	//digitalWrite(relayAux1, LOW);
 
-	Serial.println("I live!");
+	RESTSerial.println("I live!");
+	LogSerial.println("I live!");
 	Wire.begin();
 
 	if(!accel.begin()) {
@@ -88,6 +93,8 @@ void initIO 	(void) {
 	steeringPID.SetOutputLimits(pidMin, pidMax);
 	steeringServo.attach(steeringPin);
 	steeringPID.SetMode(AUTOMATIC);
+	
+	//Serial.println("Setup complete!");
 }
 
 /**
@@ -159,6 +166,8 @@ void initREST 	(aREST * rest, boatVector * thisBoat) {
 	rest->function((char *)F("boneHeartBeat"), 			boneHeartBeat);
 	rest->function((char *)F("shoreHeartBeat"), 		boneHeartBeat);
 	rest->function((char *)F("dumpState"),				dumpState);
+	
+	// Serial.println("REST setup complete");
 }
 
 /**
@@ -190,6 +199,8 @@ void initBoat	(boatVector * thisBoat) {
 	steeringPID.SetMode(MANUAL);
   	ardLights.begin();
   	boneLights.begin();
+	
+	// Serial.println("Boat setup complete");
 }
 
 /**
@@ -197,7 +208,7 @@ void initBoat	(boatVector * thisBoat) {
  *
  * @param thisBoat The boat's state vector
  */
-void input (boatVector * thisBoat) {
+void input (aREST * rest, boatVector * thisBoat) {
 	sensors_event_t accel_event;
 	sensors_event_t mag_event;
 	sensors_event_t gyro_event;
@@ -221,6 +232,7 @@ void input (boatVector * thisBoat) {
 	thisBoat->gyroX				= gyro_event.gyro.x;
 	thisBoat->gyroY				= gyro_event.gyro.y;
 	thisBoat->gyroZ				= gyro_event.gyro.z;
+	//Serial.println("Got I2C inputs!");
 	
 	// read digital inputs
 	thisBoat->enbButton 		= digitalRead(enableButtonPin);
@@ -234,16 +246,18 @@ void input (boatVector * thisBoat) {
 	thisBoat->motorVoltage			= thisBoat->motorVoltageRaw 	* motorVoltMult;
 	thisBoat->motorCurrent			= (thisBoat->motorCurrentRaw 	+ motorCurrentOffset) * motorCurrentMult;
 	thisBoat->batteryVoltage		= 0;
+	//Serial.println("Got analog inputs!");
 
 	// read REST
 	while (RESTSerial.available()) {
-		if (restInput.handle(RESTSerial)) {
+		if (rest->handle(RESTSerial)) {
 			thisBoat->timeSinceLastPacket = 0;
 			thisBoat->timeOfLastPacket = millis();
 		} else {
 			thisBoat->timeSinceLastPacket = millis() - thisBoat->timeOfLastPacket;
 		}
 	}
+	//Serial.println("Got REST!");
 	
 	// print to log
 }
@@ -254,6 +268,7 @@ void input (boatVector * thisBoat) {
  * @param thisBoat The boat's state vector
  */
 void output (boatVector * thisBoat) {
+	//Serial.println("Writing outputs...");
 	setThrottle(thisBoat);
 	lightControl(thisBoat->state, thisBoat->bone);
 	digitalWrite(servoEnable, thisBoat->servoPower);
@@ -869,12 +884,6 @@ int dumpState (String params) {
 	restInput.addToBuffer(boat.timeOfLastBoneHB);
 	restInput.addToBuffer(F(",\n\"timeOfLastShoreHB\":"));
 	restInput.addToBuffer(boat.timeOfLastShoreHB);
-	restInput.addToBuffer(F(",\n\"stateString\":"));
-	restInput.addToBuffer(boat.stateString);
-	restInput.addToBuffer(F(",\n\"boneStateString\":"));
-	restInput.addToBuffer(boat.boneStateString);
-	restInput.addToBuffer(F(",\n\"commandString\":"));
-	restInput.addToBuffer(boat.commandString);
 	restInput.addToBuffer(F(",\n\"faultString\":"));
 	restInput.addToBuffer(boat.faultString);
 	restInput.addToBuffer(F(",\n\"rudder\":"));
@@ -976,6 +985,7 @@ arduinoState executeSelfTest (boatVector * thisBoat, arduinoState lastState) {
 		signalFaultCnt = 0;
 		thisBoat->startStateTime = millis();
 	}
+	//Serial.println("Running self test...");
 	
 	// Power down all relays, power up the servo, and center the rudder
 	thisBoat->motorDirRly 		= LOW;
@@ -986,6 +996,7 @@ arduinoState executeSelfTest (boatVector * thisBoat, arduinoState lastState) {
 	thisBoat->motorRedYlwRly 	= LOW;
 	thisBoat->rudder 			= 0;
 	thisBoat->servoPower		= HIGH;
+	//Serial.println("Servo power on...");
 	
 	// if we're commanded into ArmedTest, go there
 	if (thisBoat->command == BOAT_ARMEDTEST) {
@@ -1003,44 +1014,46 @@ arduinoState executeSelfTest (boatVector * thisBoat, arduinoState lastState) {
 	if ((millis() - thisBoat->timeOfLastPacket) < sensorTestPeriod) {
 		if ((thisBoat->orientation.roll > tiltDeviationLimit) || (thisBoat->orientation.pitch > tiltDeviationLimit)) {
 			faultCnt++;
-			LogSerial.print("Sensor outside of roll/pitch limits. Measure values roll: ");
+			LogSerial.print(F("Sensor outside of roll/pitch limits. Measure values roll: "));
 			LogSerial.print(thisBoat->orientation.roll);
-			LogSerial.print(" pitch: ");
+			LogSerial.print(F(" pitch: "));
 			LogSerial.println(thisBoat->orientation.pitch);
 			thisBoat->faultString |= FAULT_SENSOR;
 		}
 		if (abs(getHeadingError(thisBoat->orientation.heading, thisBoat->headingTarget)) > compassDeviationLimit) {
-			LogSerial.print("Compass outside of deviation limits. Compass heading: ");
+			LogSerial.print(F("Compass outside of deviation limits. Compass heading: "));
 			LogSerial.print(thisBoat->orientation.heading);
-			LogSerial.print(" Reference: ");
+			LogSerial.print(F(" Reference: "));
 			LogSerial.print(thisBoat->headingTarget);
-			LogSerial.print(" Error: ");
+			LogSerial.print(F(" Error: "));
 			LogSerial.println(getHeadingError(thisBoat->orientation.heading, thisBoat->headingTarget));
 			faultCnt++;
 			thisBoat->faultString |= FAULT_SENSOR;
 		}
 	}
+	//Serial.println(F("Orientation checked!"));
 	
 	// check for incoming signal
 	if ((millis() - thisBoat->timeOfLastPacket) > signalTestPeriod) {
 		faultCnt++;
 		thisBoat->faultString |= FAULT_NO_SIGNAL;
-		LogSerial.print("Signal timeout. Current time: ");
+		LogSerial.print(F("Signal timeout. Current time: "));
 		LogSerial.print(millis());
-		LogSerial.print(" Last time: ");
+		LogSerial.print(F(" Last time: "));
 		LogSerial.println(thisBoat->timeOfLastPacket);
 	} else {
 		if (thisBoat->faultString & FAULT_NO_SIGNAL) {
 			thisBoat->faultString &= !FAULT_NO_SIGNAL;
 			faultCnt--;
 		}
-		LogSerial.print("Removing signal timeout. Current time: ");
+		LogSerial.print(F("Removing signal timeout. Current time: "));
 		LogSerial.print(millis());
-		LogSerial.print(" Last time: ");
+		LogSerial.print(F(" Last time: "));
 		LogSerial.print(thisBoat->timeOfLastPacket);
-		LogSerial.print(" Fault string: ");
+		LogSerial.print(F(" Fault string: "));
 		LogSerial.println(thisBoat->faultString);
 	}
+	//Serial.println(F("Incoming signal checked!"));
 	
 	// Check for fault from the Beaglebone
 	if (BONE_FAULT == thisBoat->bone) {
@@ -1051,13 +1064,14 @@ arduinoState executeSelfTest (boatVector * thisBoat, arduinoState lastState) {
 	// Check for the end of the test
 	if ((millis() - thisBoat->startStateTime) > startupTestPeriod) {
 		if (faultCnt) {
-			LogSerial.print("Got faults on startup. Fault string: ");
+			LogSerial.print(F("Got faults on startup. Fault string: "));
 			LogSerial.println(thisBoat->faultString, HEX);
 			return BOAT_FAULT;
 		} else {
 			return BOAT_DISARMED;
 		}
 	}
+	//Serial.println(F("Returning from state function!"));
 	
 	return BOAT_SELFTEST;
 }
@@ -1373,7 +1387,7 @@ arduinoState executeActiveRudder (boatVector * thisBoat, arduinoState lastState)
 
 arduinoState executeLowBattery (boatVector * thisBoat, arduinoState lastState) {
 
-	Serial.println(F("**** Low Battery ****"));
+	LogSerial.println(F("**** Low Battery ****"));
 	
 	// Power down all relays & the servo, and center the rudder
 	thisBoat->motorDirRly 		= LOW;

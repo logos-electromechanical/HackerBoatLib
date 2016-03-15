@@ -34,8 +34,11 @@
 #define flashDelay  			500		/**< Time in ms between light transitions while flashing					*/
 
 // port mapping
-static HardwareSerial LogSerial = 		Serial;		/**< Serial port used for logging and feedback */
-static HardwareSerial RESTSerial = 		Serial1;	/**< Serial port used for REST commands and response */
+#define LogSerial				Serial1
+#define RESTSerial				Serial
+
+//HardwareSerial LogSerial = 		Serial;		/**< Serial port used for logging and feedback */
+//HardwareSerial RESTSerial = 	Serial1;	/**< Serial port used for REST commands and response */
 
 // pin mapping
 #define servoEnable          	2		/**< Enable pin for the steering servo power supply 	*/
