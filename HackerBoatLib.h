@@ -197,7 +197,7 @@ typedef struct boatVector {
 	uint8_t	 		stopButton;				/**< State of the emergency stop button. off = 0; on = 0xff       */
 	long 			timeSinceLastPacket;	/**< Number of milliseconds since the last command packet received    */
 	long 			timeOfLastPacket;		/**< Time the last packet arrived */
-	long 			timeOfLastBoneHB;	
+	long 			timeOfLastBoatHB;	
 	long 			timeOfLastShoreHB;
 	uint8_t			faultString;			/**< Fault string -- binary string to indicate source of faults */
 	float 			rudder;

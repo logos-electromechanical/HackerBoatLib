@@ -252,6 +252,7 @@ void input (aREST * rest, boatVector * thisBoat) {
 	// read REST
 	while (RESTSerial.available()) {
 		if (rest->handle(RESTSerial)) {
+			Serial.println("Resetting time since last packet");
 			thisBoat->timeSinceLastPacket = 0;
 			thisBoat->timeOfLastPacket = millis();
 		} else {
@@ -638,14 +639,18 @@ void setThrottle (boatVector * thisBoat) {
 ///////////////////////////////
 
 int writeBoatMode (String params) {
-	Serial.print("Entering writeBoatMode function: "); Serial.print(params);
+	Serial.print("Entering writeBoatMode function: "); Serial.println(params);
 	for (uint8_t i = 0; i < boatModeCount; i++) {
 		if(params.startsWith(boatModes[i])) {
 			boat.boat = (boatMode)i;
+			restInput.addToBuffer(F("\"boat\": \""));
+			restInput.addToBuffer(boatModes[boat.boat]);
+			restInput.addToBuffer(F("\""));
 			return 0;
 		}
 	}
 	boat.boat = BOAT_UNKNOWN;
+	restInput.addToBuffer(F("\"boat\":\"None\""));
 	return -1;
 }
 
@@ -653,10 +658,14 @@ int writeCommand (String params) {
 	for (uint8_t i = 0; i < arduinoModeCount; i++) {
 		if(params.startsWith(arduinoModes[i])) {
 			boat.command = (arduinoMode)i;
+			restInput.addToBuffer(F("\"command\": \""));
+			restInput.addToBuffer(arduinoModes[boat.command]);
+			restInput.addToBuffer(F("\""));
 			return 0;
 		}
 	}
 	boat.command = ARD_NONE;
+	restInput.addToBuffer(F("\"command\":\"None\""));
 	return -1;
 }
 
@@ -668,6 +677,8 @@ int writeThrottle (String params) {
 				boat.throttle = (throttleState)throttleIn;
 		}
 	}
+	restInput.addToBuffer(F("\"throttle\":"));
+	restInput.addToBuffer(boat.throttle);
 	return boat.throttle;
 }
 
@@ -678,7 +689,9 @@ int writeHeadingTarget (String params) {
 			boat.headingTarget = headingIn;
 		}
 	}
-	return (boat.headingTarget * 10);
+	restInput.addToBuffer(F("\"headingTarget\":"));
+	restInput.addToBuffer(boat.headingTarget);
+	return (boat.headingTarget);
 }
 
 int writeHeadingDelta (String params) {
@@ -690,7 +703,9 @@ int writeHeadingDelta (String params) {
 			if (boat.headingTarget > 360) boat.headingTarget -= 360;
 		}
 	}
-	return (boat.headingTarget * 10);
+	restInput.addToBuffer(F("\"headingTarget\":"));
+	restInput.addToBuffer(boat.headingTarget);
+	return (boat.headingTarget);
 }
 
 int writeRudder (String params) {
@@ -702,6 +717,8 @@ int writeRudder (String params) {
 				boat.rudder = rudderIn;
 			}
 	}
+	restInput.addToBuffer(F("\"rudder\":"));
+	restInput.addToBuffer(boat.rudder);
 	return (boat.rudder * 10);
 }
 
@@ -711,6 +728,8 @@ int writeKp (String params) {
 		boat.Kp = Kin;
 		steeringPID.SetTunings(boat.Kp, boat.Ki, boat.Kd);
 	}
+	restInput.addToBuffer(F("\"Kp\":"));
+	restInput.addToBuffer(boat.Kp);
 	return (boat.Kp * 1000);
 }
 
@@ -720,6 +739,8 @@ int writeKi (String params) {
 		boat.Ki = Kin;
 		steeringPID.SetTunings(boat.Kp, boat.Ki, boat.Kd);
 	}
+	restInput.addToBuffer(F("\"Ki\":"));
+	restInput.addToBuffer(boat.Ki);
 	return (boat.Ki * 1000);
 }
 
@@ -729,6 +750,8 @@ int writeKd (String params) {
 		boat.Kd = Kin;
 		steeringPID.SetTunings(boat.Kp, boat.Ki, boat.Kd);
 	}
+	restInput.addToBuffer(F("\"Kd\":"));
+	restInput.addToBuffer(boat.Kd);
 	return (boat.Kd * 1000);
 }
 
@@ -736,134 +759,137 @@ int writeHorn (String params) {
 	if (boat.mode == ARD_ARMEDTEST) {
 		if (params.startsWith("ON")) {
 			boat.horn = HIGH;
-			return 1;
 		} else if (params.startsWith("OFF")) {
 			boat.horn = LOW;
-			return 0;
 		}
 	}
-	return -1;
+	restInput.addToBuffer(F("\"horn\":"));
+	restInput.addToBuffer(boat.horn);
+	return (boat.horn);
 }
 
 int writeMotorDirRly (String params) {
 	if (boat.mode == ARD_ARMEDTEST) {
 		if (params.startsWith("ON")) {
 			boat.motorDirRly = HIGH;
-			return 1;
 		} else if (params.startsWith("OFF")) {
 			boat.motorDirRly = LOW;
-			return 0;
 		}
 	}
-	return -1;
+	restInput.addToBuffer(F("\"motorDirRly\":"));
+	restInput.addToBuffer(boat.motorDirRly);
+	return (boat.motorDirRly);
 }
 
 int writeMotorWhtRly (String params) {
 	if (boat.mode == ARD_ARMEDTEST) {
 		if (params.startsWith("ON")) {
 			boat.motorWhtRly = HIGH;
-			return 1;
 		} else if (params.startsWith("OFF")) {
 			boat.motorWhtRly = LOW;
-			return 0;
 		}
 	}
-	return -1;
+	restInput.addToBuffer(F("\"motorWhtRly\":"));
+	restInput.addToBuffer(boat.motorWhtRly);
+	return (boat.motorWhtRly);
 }
 
 int writeMotorYlwRly (String params) {
 	if (boat.mode == ARD_ARMEDTEST) {
 		if (params.startsWith("ON")) {
 			boat.motorYlwRly = HIGH;
-			return 1;
 		} else if (params.startsWith("OFF")) {
 			boat.motorYlwRly = LOW;
-			return 0;
 		}
 	}
-	return -1;
+	restInput.addToBuffer(F("\"motorYlwRly\":"));
+	restInput.addToBuffer(boat.motorYlwRly);
+	return (boat.motorYlwRly);
 }
 
 int writeMotorRedRly (String params) {
 	if (boat.mode == ARD_ARMEDTEST) {
 		if (params.startsWith("ON")) {
 			boat.motorRedRly = HIGH;
-			return 1;
 		} else if (params.startsWith("OFF")) {
 			boat.motorRedRly = LOW;
-			return 0;
 		}
 	}
-	return -1;
+	restInput.addToBuffer(F("\"motorRedRly\":"));
+	restInput.addToBuffer(boat.motorRedRly);
+	return (boat.motorRedRly);
 }
 
 int writeMotorRedWhtRly (String params) {
 	if (boat.mode == ARD_ARMEDTEST) {
 		if (params.startsWith("ON")) {
 			boat.motorRedWhtRly = HIGH;
-			return 1;
 		} else if (params.startsWith("OFF")) {
 			boat.motorRedWhtRly = LOW;
-			return 0;
 		}
 	}
-	return -1;
+	restInput.addToBuffer(F("\"motorRedWhtRly\":"));
+	restInput.addToBuffer(boat.motorRedWhtRly);
+	return (boat.motorRedWhtRly);
 }
 
 int writeMotorRedYlwRly (String params) {
 	if (boat.mode == ARD_ARMEDTEST) {
 		if (params.startsWith("ON")) {
 			boat.motorRedYlwRly = HIGH;
-			return 1;
 		} else if (params.startsWith("OFF")) {
 			boat.motorRedYlwRly = LOW;
-			return 0;
 		}
 	}
-	return -1;
+	restInput.addToBuffer(F("\"motorRedYlwRly\":"));
+	restInput.addToBuffer(boat.motorRedYlwRly);
+	return (boat.motorRedYlwRly);
 }
 
 int writeServoPower (String params) {
 	if (boat.mode == ARD_ARMEDTEST) {
 		if (params.startsWith("ON")) {
 			boat.servoPower = HIGH;
-			return 1;
 		} else if (params.startsWith("OFF")) {
 			boat.servoPower = LOW;
-			return 0;
 		}
 	}
-	return -1;
+	restInput.addToBuffer(F("\"servoPower\":"));
+	restInput.addToBuffer(boat.servoPower);
+	return (boat.servoPower);
 }
 
 int	boatHeartBeat (String params) {
-	boat.timeOfLastBoneHB = millis();
+	boat.timeOfLastBoatHB = millis();
+	restInput.addToBuffer(F("\"heartbeat\":true"));
 	return 0;
 }
 
 int	shoreHeartBeat (String params) {
 	boat.timeOfLastShoreHB = millis();
+	restInput.addToBuffer(F("\"heartbeat\":true"));
 	return 0;
 
 }
 
 int dumpCoreState (String params) {
-	restInput.addToBuffer(F("\"mode\":"));
+	// valid JSON per http://jsonlint.com/
+	restInput.addToBuffer(F("\"mode\": \""));
 	restInput.addToBuffer(arduinoModes[boat.mode]);
-	restInput.addToBuffer(F(",\"command\":"));
+	restInput.addToBuffer(F("\",\"command\": \""));
 	restInput.addToBuffer(arduinoModes[boat.command]);
-	restInput.addToBuffer(F(",\"throttle\":"));
+	restInput.addToBuffer(F("\",\"throttle\":"));
 	restInput.addToBuffer(boat.throttle);
-	restInput.addToBuffer(F(",\n\"boat\":"));
+	restInput.addToBuffer(F(",\n\"boat\": \""));
 	restInput.addToBuffer(boatModes[boat.boat]);
-	restInput.addToBuffer(F(",\n\"headingTarget\":"));
+	restInput.addToBuffer(F("\",\n\"headingTarget\":"));
 	restInput.addToBuffer(boat.headingTarget);
 	restInput.addToBuffer(F(",\n\"timeSinceLastPacket\":"));
 	restInput.addToBuffer(boat.timeSinceLastPacket);
 	restInput.addToBuffer(F(",\n\"timeOfLastPacket\":"));
 	restInput.addToBuffer(boat.timeOfLastPacket);
-	restInput.addToBuffer(F(",\n\"timeOfLastBoneHB\":"));
-	restInput.addToBuffer(boat.timeOfLastBoneHB);
+	restInput.addToBuffer(F(",\n\"timeOfLastBoatHB\":"));
+	restInput.addToBuffer(boat.timeOfLastBoatHB);
 	restInput.addToBuffer(F(",\n\"timeOfLastShoreHB\":"));
 	restInput.addToBuffer(boat.timeOfLastShoreHB);
 	restInput.addToBuffer(F(",\n\"faultString\":"));
@@ -878,14 +904,15 @@ int dumpCoreState (String params) {
 	restInput.addToBuffer(boat.startStopTime);
 	restInput.addToBuffer(F(",\n\"startStateTime\":"));
 	restInput.addToBuffer(boat.startStateTime);
-	restInput.addToBuffer(F(",\n\"originMode\":"));
+	restInput.addToBuffer(F(",\n\"originMode\": \""));
 	restInput.addToBuffer(arduinoModes[boat.originMode]);
-	restInput.addToBuffer(F(",\n"));
+	restInput.addToBuffer(F("\"\n"));
 	
 	return 0;
 }
 
 int dumpOrientationState (String params) {
+	// valid JSON per http://jsonlint.com/
 	restInput.addToBuffer(F("\"currentHeading\":"));
 	restInput.addToBuffer(boat.orientation.heading);
 	restInput.addToBuffer(F(",\n\"pitch\":"));
@@ -915,7 +942,8 @@ int dumpOrientationState (String params) {
 }
 
 int dumpInputState (String params) {
-	restInput.addToBuffer(F(",\n\"internalVoltage\":"));
+	// valid JSON per http://jsonlint.com/
+	restInput.addToBuffer(F("\"internalVoltage\":"));
 	restInput.addToBuffer(boat.internalVoltage);
 	restInput.addToBuffer(F(",\n\"batteryVoltage\":"));
 	restInput.addToBuffer(boat.batteryVoltage);
@@ -934,6 +962,7 @@ int dumpInputState (String params) {
 }
 
 int dumpRawInputState (String params) {
+	// valid JSON per http://jsonlint.com/
 	restInput.addToBuffer(F("\"rudderRaw\":"));
 	restInput.addToBuffer(boat.rudderRaw);
 	restInput.addToBuffer(F(",\n\"internalVoltageRaw\":"));
@@ -945,7 +974,9 @@ int dumpRawInputState (String params) {
 	
 	return 0;
 }
+
 int dumpOutputState	(String params) {
+	// valid JSON per http://jsonlint.com/
 	restInput.addToBuffer(F("\"horn\":"));
 	restInput.addToBuffer(boat.horn);
 	restInput.addToBuffer(F(",\n\"motorDirRly\":"));
@@ -1124,7 +1155,7 @@ arduinoState executeDisarmed (boatVector * thisBoat, arduinoState lastState) {
 		thisBoat->faultString |= FAULT_BB_FAULT;
 		return ARD_FAULT;
 	}
-	if ((millis() - thisBoat->timeOfLastBoneHB) > disarmedPacketTimeout) {
+	if ((millis() - thisBoat->timeOfLastBoatHB) > disarmedPacketTimeout) {
 		thisBoat->faultString |= FAULT_NO_SIGNAL;
 		return ARD_FAULT;
 	}
@@ -1197,7 +1228,7 @@ arduinoState executeArmed (boatVector * thisBoat, arduinoState lastState) {
 	}
 	
 	// check for packet timeout
-	if ((millis() - thisBoat->timeOfLastBoneHB) > armedPacketTimeout) {
+	if ((millis() - thisBoat->timeOfLastBoatHB) > armedPacketTimeout) {
 		thisBoat->faultString |= FAULT_NO_SIGNAL;
 		thisBoat->horn = LOW;
 		return ARD_FAULT;
@@ -1336,7 +1367,7 @@ arduinoState executeActive (boatVector * thisBoat, arduinoState lastState) {
 	}
 	
 	// check for packet timeout
-	if ((millis() - thisBoat->timeOfLastBoneHB) > armedPacketTimeout) {
+	if ((millis() - thisBoat->timeOfLastBoatHB) > armedPacketTimeout) {
 		thisBoat->faultString |= FAULT_NO_SIGNAL;
 		return ARD_SELFRECOVERY;
 	}
@@ -1493,7 +1524,7 @@ arduinoState executeSelfRecovery (boatVector * thisBoat, arduinoState lastState)
 	}
 	
 	// check for heartbeat...
-	if ((millis() - thisBoat->timeOfLastBoneHB) < armedPacketTimeout) {
+	if ((millis() - thisBoat->timeOfLastBoatHB) < armedPacketTimeout) {
 		steeringPID.SetMode(MANUAL);
 		return thisBoat->originMode;
 	}
