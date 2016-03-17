@@ -14,7 +14,7 @@
 #define HACKERBOATLIB_h
 
 #define NUMBER_VARIABLES	21
-#define NUMBER_FUNCTIONS	19
+#define NUMBER_FUNCTIONS	25
 #define CHAR_STRINGS	
 #include <aREST.h>
 
@@ -32,28 +32,28 @@
 #define REST_ID			"255"
 #define REST_NAME		"ArduinoHackerBoat"
 
-#define ARDUINO_STATE_LEN	13
-#define BONE_STATE_LEN		19
+//#define ARDUINO_STATE_LEN	13
+//#define BONE_STATE_LEN		19
 
 /**
  * @brief An enum to store the current state of the boat.
  */
-typedef enum arduinoState {
-	BOAT_POWERUP     	= 0,  		/**< The boat enters this state at the end of initialization */
-	BOAT_ARMED			= 1,  		/**< In this state, the boat is ready to receive go commands over RF */
-	BOAT_SELFTEST   	= 2,  		/**< After powerup, the boat enters this state to determine whether it's fit to run */
-	BOAT_DISARMED   	= 3,  		/**< This is the default safe state. No external command can start the motor */
-	BOAT_ACTIVE     	= 4,  		/**< This is the normal steering state */
-	BOAT_LOWBATTERY   	= 5,  		/**< The battery voltage has fallen below that required to operate the motor */
-	BOAT_FAULT    		= 6,  		/**< The boat is faulted in some fashion */
-	BOAT_SELFRECOVERY 	= 7,   		/**< The Beaglebone has failed and/or is not transmitting, so time to self-recover*/
-	BOAT_ARMEDTEST		= 8,		/**< The Arduino is accepting specific pin read/write requests for hardware testing. */
-	BOAT_ACTIVERUDDER	= 9,		/**< The Arduino is accepting direct rudder commands */
-	BOAT_NONE			= 10		/**< Provides a null value for no command yet received */
+typedef enum arduinoMode {
+	ARD_POWERUP     	= 0,  		/**< The boat enters this state at the end of initialization */
+	ARD_ARMED			= 1,  		/**< In this state, the boat is ready to receive go commands over RF */
+	ARD_SELFTEST 	  	= 2,  		/**< After powerup, the boat enters this state to determine whether it's fit to run */
+	ARD_DISARMED 	  	= 3,  		/**< This is the default safe state. No external command can start the motor */
+	ARD_ACTIVE   	  	= 4,  		/**< This is the normal steering state */
+	ARD_LOWBATTERY   	= 5,  		/**< The battery voltage has fallen below that required to operate the motor */
+	ARD_FAULT    		= 6,  		/**< The boat is faulted in some fashion */
+	ARD_SELFRECOVERY 	= 7,   		/**< The Beaglebone has failed and/or is not transmitting, so time to self-recover*/
+	ARD_ARMEDTEST		= 8,		/**< The Arduino is accepting specific pin read/write requests for hardware testing. */
+	ARD_ACTIVERUDDER	= 9,		/**< The Arduino is accepting direct rudder commands */
+	ARD_NONE			= 10		/**< Provides a null value for no command yet received */
 } arduinoState;        
 
-const uint8_t arduinoStateCount PROGMEM = 11;
-const char arduinoStates[][ARDUINO_STATE_LEN] PROGMEM = {
+const uint8_t arduinoModeCount = 11;
+const String arduinoModes[] = {
 	"PowerUp", 
 	"Armed", 
 	"SelfTest", 
@@ -69,22 +69,22 @@ const char arduinoStates[][ARDUINO_STATE_LEN] PROGMEM = {
 /**
  * @brief Beaglebone state
  */
-typedef enum boneState {
-	BONE_START			= 0,  		/**< Initial starting state         */
-	BONE_SELFTEST		= 1,  		/**< Initial self-test            */
-	BONE_DISARMED		= 2,  		/**< Disarmed wait state          */  
-	BONE_FAULT			= 3,		/**< Beaglebone faulted           */ 
-	BONE_ARMED			= 4,		/**< Beaglebone armed & ready to navigate */ 
-	BONE_MANUAL			= 5,		/**< Beaglebone manual steering       */ 
-	BONE_WAYPOINT		= 6,		/**< Beaglebone navigating by waypoints   */
-	BONE_NOSIGNAL		= 7,		/**< Beaglebone has lost shore signal    */
-	BONE_RETURN			= 8,		/**< Beaglebone is attempting to return to start point */
-	BONE_ARMEDTEST		= 9,		/**< Beaglebone accepts all commands that would be valid in any unsafe state */
-	BONE_UNKNOWN		= 10		/**< State of the Beaglebone is currently unknown	*/
+typedef enum boatMode {
+	BOAT_START			= 0,  		/**< Initial starting state         */
+	BOAT_SELFTEST		= 1,  		/**< Initial self-test            */
+	BOAT_DISARMED		= 2,  		/**< Disarmed wait state          */  
+	BOAT_FAULT			= 3,		/**< Beaglebone faulted           */ 
+	BOAT_ARMED			= 4,		/**< Beaglebone armed & ready to navigate */ 
+	BOAT_MANUAL			= 5,		/**< Beaglebone manual steering       */ 
+	BOAT_WAYPOINT		= 6,		/**< Beaglebone navigating by waypoints   */
+	BOAT_NOSIGNAL		= 7,		/**< Beaglebone has lost shore signal    */
+	BOAT_RETURN			= 8,		/**< Beaglebone is attempting to return to start point */
+	BOAT_ARMEDTEST		= 9,		/**< Beaglebone accepts all commands that would be valid in any unsafe state */
+	BOAT_UNKNOWN		= 10		/**< State of the Beaglebone is currently unknown	*/
 } boneState;
 
-const uint8_t boneStateCount PROGMEM = 11;
-const char boneStates[][BONE_STATE_LEN] PROGMEM = {
+const uint8_t boatModeCount = 11;
+const String boatModes[] = {
 	"Start", 
 	"SelfTest", 
 	"Disarmed", 
@@ -184,10 +184,10 @@ typedef enum throttleState {
  * @brief Structure to hold the boat's state data 
  */
 typedef struct boatVector {
-	arduinoState 	state;					/**< The current state of the boat                    */
-	arduinoState	command;
+	arduinoMode 	mode;					/**< The current mode of the arduino                    */
+	arduinoMode		command;
 	throttleState 	throttle;   			/**< The current throttle position                    */
-	boneState 		bone;					/**< The current state of the BeagleBone                */
+	boatMode 		boat;					/**< The current mode of the BeagleBone                */
 	sensors_vec_t 	orientation;			/**< The current accelerometer tilt and magnetic heading of the boat  */
 	float 			headingTarget;			/**< The desired magnetic heading                     */  
 	float 			internalVoltage;		/**< The battery voltage measured on the control PCB          */
@@ -199,9 +199,6 @@ typedef struct boatVector {
 	long 			timeOfLastPacket;		/**< Time the last packet arrived */
 	long 			timeOfLastBoneHB;	
 	long 			timeOfLastShoreHB;
-	char			stateString[ARDUINO_STATE_LEN];
-	char 			boneStateString[BONE_STATE_LEN];
-	char			commandString[ARDUINO_STATE_LEN];
 	uint8_t			faultString;			/**< Fault string -- binary string to indicate source of faults */
 	float 			rudder;
 	uint16_t		rudderRaw;
@@ -231,15 +228,8 @@ typedef struct boatVector {
 	uint8_t			servoPower;
 	long 			startStopTime;
 	long			startStateTime;
-	arduinoState	originState;
+	arduinoMode		originMode;
 } boatVector;
-
-//////////////////////
-// global variables //
-//////////////////////
-
-//static aREST 		restInput 	= aREST();	/**< REST input object **/
-//static boatVector 	boat;					/**< Boat state vector            */
 
 ///////////////////////////////////
 // general function declarations //
@@ -255,7 +245,7 @@ void output		(boatVector * thisBoat);
 // REST function declarations //
 ////////////////////////////////
 
-int writeBoneState 		(String params);		
+int writeBoatMode 		(String params);		
 int writeCommand 		(String params);
 int writeThrottle 		(String params);
 int writeHeadingTarget 	(String params);
@@ -272,9 +262,13 @@ int writeMotorRedRly 	(String params);
 int writeMotorRedWhtRly (String params);
 int writeMotorRedYlwRly (String params);
 int writeServoPower		(String params);
-int	boneHeartBeat		(String params);
+int	boatHeartBeat		(String params);
 int	shoreHeartBeat		(String params);
-int dumpState			(String params);
+int dumpCoreState		(String params);
+int dumpOrientationState(String params);
+int dumpInputState		(String params);
+int dumpRawInputState	(String params);
+int dumpOutputState		(String params);
 
 /////////////////////////////////
 // state function declarations //
