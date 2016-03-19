@@ -227,7 +227,7 @@ typedef struct boatVector {
 	uint8_t			motorRedYlwRly;
 	uint8_t			servoPower;
 	long 			startStopTime;
-	long			startStateTime;
+	long			startModeTime;
 	arduinoMode		originMode;
 } boatVector;
 

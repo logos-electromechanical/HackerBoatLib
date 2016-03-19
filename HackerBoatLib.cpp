@@ -902,8 +902,8 @@ int dumpCoreState (String params) {
 	restInput.addToBuffer(boat.Kd);
 	restInput.addToBuffer(F(",\n\"startStopTime\":"));
 	restInput.addToBuffer(boat.startStopTime);
-	restInput.addToBuffer(F(",\n\"startStateTime\":"));
-	restInput.addToBuffer(boat.startStateTime);
+	restInput.addToBuffer(F(",\n\"startModeTime\":"));
+	restInput.addToBuffer(boat.startModeTime);
 	restInput.addToBuffer(F(",\n\"originMode\": \""));
 	restInput.addToBuffer(arduinoModes[boat.originMode]);
 	restInput.addToBuffer(F("\"\n"));
@@ -913,13 +913,13 @@ int dumpCoreState (String params) {
 
 int dumpOrientationState (String params) {
 	// valid JSON per http://jsonlint.com/
-	restInput.addToBuffer(F("\"currentHeading\":"));
+	restInput.addToBuffer(F("\"orientation\":{\"heading\":"));
 	restInput.addToBuffer(boat.orientation.heading);
-	restInput.addToBuffer(F(",\n\"pitch\":"));
+	restInput.addToBuffer(F(",\"pitch\":"));
 	restInput.addToBuffer(boat.orientation.pitch);
-	restInput.addToBuffer(F(",\n\"roll\":"));
+	restInput.addToBuffer(F(",\"roll\":"));
 	restInput.addToBuffer(boat.orientation.roll);
-	restInput.addToBuffer(F(",\n\"magX\":"));
+	restInput.addToBuffer(F("},\n\"magX\":"));
 	restInput.addToBuffer(boat.magX);
 	restInput.addToBuffer(F(",\n\"magY\":"));
 	restInput.addToBuffer(boat.magY);
@@ -1032,7 +1032,7 @@ arduinoState executeSelfTest (boatVector * thisBoat, arduinoState lastState) {
 		accelFaultCnt = 0;
 		gyroFaultCnt = 0;
 		signalFaultCnt = 0;
-		thisBoat->startStateTime = millis();
+		thisBoat->startModeTime = millis();
 	}
 	//Serial.println("Running self test...");
 	
@@ -1111,7 +1111,7 @@ arduinoState executeSelfTest (boatVector * thisBoat, arduinoState lastState) {
 	}
 	
 	// Check for the end of the test
-	if ((millis() - thisBoat->startStateTime) > startupTestPeriod) {
+	if ((millis() - thisBoat->startModeTime) > startupTestPeriod) {
 		if (faultCnt) {
 			LogSerial.print(F("Got faults on startup. Fault string: "));
 			LogSerial.println(thisBoat->faultString, HEX);
@@ -1207,7 +1207,7 @@ arduinoState executeArmed (boatVector * thisBoat, arduinoState lastState) {
 	
 	// if we've just entered this state, reset all the counters and turn on the horn
 	if (lastState != ARD_ARMED) {
-		thisBoat->startStateTime 	= millis();
+		thisBoat->startModeTime 	= millis();
 		thisBoat->originMode 		= lastState;
 		thisBoat->horn 				= HIGH;
 	}
@@ -1237,7 +1237,7 @@ arduinoState executeArmed (boatVector * thisBoat, arduinoState lastState) {
 	// Check to see if we came from a safe state and whether or not the horn timeout is over.
 	// If we came from a safe state and the horn timeout is not over, sound the horn and reject
 	// commands. 
-	if (((millis() - thisBoat->startStateTime) < hornTimeout) && (ARD_DISARMED == thisBoat->originMode)) {
+	if (((millis() - thisBoat->startModeTime) < hornTimeout) && (ARD_DISARMED == thisBoat->originMode)) {
 		thisBoat->horn = HIGH;
 		return ARD_ARMED;
 	} else {
@@ -1264,7 +1264,7 @@ arduinoState executeArmedTest (boatVector * thisBoat, arduinoState lastState) {
 	
 	// reset timers & relays upon state entry
 	if (lastState != ARD_ARMEDTEST) {
-		thisBoat->startStateTime 	= millis();
+		thisBoat->startModeTime 	= millis();
 		thisBoat->horn 				= HIGH;
 		thisBoat->motorDirRly 		= LOW;
 		thisBoat->motorWhtRly 		= LOW;
@@ -1307,7 +1307,7 @@ arduinoState executeArmedTest (boatVector * thisBoat, arduinoState lastState) {
 	// Check to see if we came from a safe state and whether or not the horn timeout is over.
 	// If we came from a safe state and the horn timeout is not over, sound the horn and reject
 	// commands. 
-	if ((millis() - thisBoat->startStateTime) < hornTimeout) {
+	if ((millis() - thisBoat->startModeTime) < hornTimeout) {
 		thisBoat->horn = HIGH;
 		return ARD_ARMEDTEST;
 	} else {
