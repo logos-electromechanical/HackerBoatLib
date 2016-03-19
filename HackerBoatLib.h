@@ -199,7 +199,7 @@ typedef struct boatVector {
 	long 			timeOfLastPacket;		/**< Time the last packet arrived */
 	long 			timeOfLastBoatHB;	
 	long 			timeOfLastShoreHB;
-	uint8_t			faultString;			/**< Fault string -- binary string to indicate source of faults */
+	String			faultString;			/**< Fault string -- string to indicate source of faults */
 	float 			rudder;
 	uint16_t		rudderRaw;
 	uint16_t		internalVoltageRaw;
@@ -240,6 +240,15 @@ void initREST 	(aREST * rest, boatVector * thisBoat);
 void initBoat	(boatVector * thisBoat);
 void input		(aREST * rest, boatVector * thisBoat);
 void output		(boatVector * thisBoat);
+
+//////////////////////////////
+// fault handling functions //
+//////////////////////////////
+
+bool insertFault (const String& fault, String& faultString);
+bool removeFault (const String& fault, String& faultString);
+bool hasFault (const String& fault, const String& faultString);
+int faultCount (const String& faultString);
 
 ////////////////////////////////
 // REST function declarations //

@@ -21,8 +21,6 @@ Adafruit_L3GD20_Unified 		gyro		= Adafruit_L3GD20_Unified(20);			/**< Gyro objec
 Adafruit_NeoPixel 				ardLights 	= Adafruit_NeoPixel(ardLightCount, arduinoLightsPin,  NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel 				boneLights 	= Adafruit_NeoPixel(boneLightCount, boneLightsPin,  NEO_GRB + NEO_KHZ800);
 		
-
-
 /////////////////////////////////
 // local function declarations //
 /////////////////////////////////
@@ -182,8 +180,8 @@ void initBoat	(boatVector * thisBoat) {
 	thisBoat->command			= ARD_NONE;
 	thisBoat->throttle			= STOP;
 	thisBoat->boat				= BOAT_UNKNOWN;
-	thisBoat->faultString		= LOW;
-	thisBoat->rudder 			= LOW;
+	thisBoat->faultString		= "";
+	thisBoat->rudder 			= 0.0;
 	thisBoat->Kp				= Kp_start;
 	thisBoat->Ki				= Ki_start;
 	thisBoat->Kd				= Kd_start;
@@ -634,6 +632,40 @@ void setThrottle (boatVector * thisBoat) {
   }
 }
 
+//////////////////////////////
+// fault handling functions //
+//////////////////////////////
+
+bool insertFault (const String& fault, String& faultString) {
+	if (!hasFault(fault, faultString)) {
+		faultString += fault + ":";
+	}
+	return true;
+}
+
+bool hasFault (const String& fault, const String &faultString) {
+	if (faultString.indexOf(fault) >= 0) return true;
+	return false;
+}
+
+bool removeFault (const String& fault, String& faultString) {
+	int start = faultString.indexOf(fault);
+	if (start >= 0) {
+		faultString.remove(start, (fault.length() + 1));
+		return true;
+	} else return false;
+}
+
+int faultCount (const String &faultString) {
+	int cnt = 0;
+	int ptr = 0;
+	while (ptr >= 0) {
+		ptr = faultString.indexOf(':', ptr);
+		if (ptr > 0) cnt++;
+	}
+	return cnt;
+}
+
 ///////////////////////////////
 // REST function definitions //
 ///////////////////////////////
@@ -892,9 +924,9 @@ int dumpCoreState (String params) {
 	restInput.addToBuffer(boat.timeOfLastBoatHB);
 	restInput.addToBuffer(F(",\n\"timeOfLastShoreHB\":"));
 	restInput.addToBuffer(boat.timeOfLastShoreHB);
-	restInput.addToBuffer(F(",\n\"faultString\":"));
-	restInput.addToBuffer(boat.faultString);
-	restInput.addToBuffer(F(",\n\"Kp\":"));
+	restInput.addToBuffer(F(",\n\"faultString\":\""));
+	restInput.addToBuffer(boat.faultString.c_str());
+	restInput.addToBuffer(F("\",\n\"Kp\":"));
 	restInput.addToBuffer(boat.Kp);
 	restInput.addToBuffer(F(",\n\"Ki\":"));
 	restInput.addToBuffer(boat.Ki);
@@ -1056,7 +1088,7 @@ arduinoState executeSelfTest (boatVector * thisBoat, arduinoState lastState) {
 	// check the battery
 	if (thisBoat->internalVoltage < testVoltageLimit) {
 		faultCnt++;
-		thisBoat->faultString |= FAULT_LOW_BAT;
+		insertFault("Low Battery", thisBoat->faultString);
 	}
 	
 	// check the orientation
@@ -1067,7 +1099,7 @@ arduinoState executeSelfTest (boatVector * thisBoat, arduinoState lastState) {
 			LogSerial.print(thisBoat->orientation.roll);
 			LogSerial.print(F(" pitch: "));
 			LogSerial.println(thisBoat->orientation.pitch);
-			thisBoat->faultString |= FAULT_SENSOR;
+			insertFault("Sensor Fault", thisBoat->faultString);
 		}
 		if (abs(getHeadingError(thisBoat->orientation.heading, thisBoat->headingTarget)) > compassDeviationLimit) {
 			LogSerial.print(F("Compass outside of deviation limits. Compass heading: "));
@@ -1076,25 +1108,20 @@ arduinoState executeSelfTest (boatVector * thisBoat, arduinoState lastState) {
 			LogSerial.print(thisBoat->headingTarget);
 			LogSerial.print(F(" Error: "));
 			LogSerial.println(getHeadingError(thisBoat->orientation.heading, thisBoat->headingTarget));
-			faultCnt++;
-			thisBoat->faultString |= FAULT_SENSOR;
+			insertFault("Sensor Fault", thisBoat->faultString);
 		}
 	}
 	//Serial.println(F("Orientation checked!"));
 	
 	// check for incoming signal
 	if ((millis() - thisBoat->timeOfLastPacket) > signalTestPeriod) {
-		faultCnt++;
-		thisBoat->faultString |= FAULT_NO_SIGNAL;
+		insertFault("No Signal", thisBoat->faultString);
 		LogSerial.print(F("Signal timeout. Current time: "));
 		LogSerial.print(millis());
 		LogSerial.print(F(" Last time: "));
 		LogSerial.println(thisBoat->timeOfLastPacket);
 	} else {
-		if (thisBoat->faultString & FAULT_NO_SIGNAL) {
-			thisBoat->faultString &= !FAULT_NO_SIGNAL;
-			faultCnt--;
-		}
+		removeFault("No Signal", thisBoat->faultString);
 		LogSerial.print(F("Removing signal timeout. Current time: "));
 		LogSerial.print(millis());
 		LogSerial.print(F(" Last time: "));
@@ -1106,15 +1133,15 @@ arduinoState executeSelfTest (boatVector * thisBoat, arduinoState lastState) {
 	
 	// Check for fault from the Beaglebone
 	if (BOAT_FAULT == thisBoat->boat) {
-		faultCnt++;
-		thisBoat->faultString |= FAULT_BB_FAULT;
+		insertFault("Bone Fault", thisBoat->faultString);
 	}
 	
 	// Check for the end of the test
 	if ((millis() - thisBoat->startModeTime) > startupTestPeriod) {
 		if (faultCnt) {
-			LogSerial.print(F("Got faults on startup. Fault string: "));
-			LogSerial.println(thisBoat->faultString, HEX);
+			LogSerial.print(F("Got faults on startup. Fault string: \""));
+			LogSerial.print(thisBoat->faultString);
+			LogSerial.println("\"");
 			return ARD_FAULT;
 		} else {
 			return ARD_DISARMED;
@@ -1152,11 +1179,11 @@ arduinoState executeDisarmed (boatVector * thisBoat, arduinoState lastState) {
 	// determine next state
 	if ((millis() - startEnbTime) > enbButtonTime) return ARD_ARMED;
 	if (BOAT_FAULT == thisBoat->boat) {
-		thisBoat->faultString |= FAULT_BB_FAULT;
+		insertFault("Bone Fault", thisBoat->faultString);
 		return ARD_FAULT;
 	}
 	if ((millis() - thisBoat->timeOfLastBoatHB) > disarmedPacketTimeout) {
-		thisBoat->faultString |= FAULT_NO_SIGNAL;
+		insertFault("No Signal", thisBoat->faultString);
 		return ARD_FAULT;
 	}
 	return ARD_DISARMED;
@@ -1181,9 +1208,10 @@ arduinoState executeFault (boatVector * thisBoat, arduinoState lastState) {
 	// Track target heading to current heading
 	thisBoat->headingTarget = thisBoat->orientation.heading;
 	
-	LogSerial.print("Fault string: ");
-	LogSerial.println(thisBoat->faultString, HEX);
-	if (0 == thisBoat->faultString) return ARD_DISARMED;
+	LogSerial.print("Fault string: \"");
+	LogSerial.print(thisBoat->faultString);
+	LogSerial.println("\"");
+	if (!faultCount(thisBoat->faultString)) return ARD_DISARMED;
 	if (ARD_SELFTEST == thisBoat->command) return ARD_SELFTEST;
 
 	return ARD_FAULT;
@@ -1222,14 +1250,14 @@ arduinoState executeArmed (boatVector * thisBoat, arduinoState lastState) {
 	
 	// check for low voltage
 	if (thisBoat->internalVoltage < serviceVoltageLimit) {
-		thisBoat->faultString |= FAULT_LOW_BAT;
+		insertFault("Low Battery", thisBoat->faultString);
 		thisBoat->horn = LOW;
 		return ARD_LOWBATTERY;
 	}
 	
 	// check for packet timeout
 	if ((millis() - thisBoat->timeOfLastBoatHB) > armedPacketTimeout) {
-		thisBoat->faultString |= FAULT_NO_SIGNAL;
+		insertFault("No Signal", thisBoat->faultString);
 		thisBoat->horn = LOW;
 		return ARD_FAULT;
 	}
@@ -1290,7 +1318,7 @@ arduinoState executeArmedTest (boatVector * thisBoat, arduinoState lastState) {
 	
 	// check for low voltage
 	if (thisBoat->internalVoltage < serviceVoltageLimit) {
-		thisBoat->faultString |= FAULT_LOW_BAT;
+		insertFault("Low Battery", thisBoat->faultString);
 		thisBoat->horn = LOW;
 		restInput.setEnable(AREST_ENB_VARIABLE | AREST_ENB_FUNCTION);
 		return ARD_FAULT;
@@ -1298,7 +1326,7 @@ arduinoState executeArmedTest (boatVector * thisBoat, arduinoState lastState) {
 	
 	// check for packet timeout
 	if ((millis() - thisBoat->timeOfLastShoreHB) > armedPacketTimeout) {
-		thisBoat->faultString |= FAULT_NO_SIGNAL;
+		insertFault("No Signal", thisBoat->faultString);
 		thisBoat->horn = LOW;
 		restInput.setEnable(AREST_ENB_VARIABLE | AREST_ENB_FUNCTION);
 		return ARD_FAULT;
@@ -1361,14 +1389,14 @@ arduinoState executeActive (boatVector * thisBoat, arduinoState lastState) {
 	
 	// check for low voltage
 	if (thisBoat->internalVoltage < serviceVoltageLimit) {
-		thisBoat->faultString |= FAULT_LOW_BAT;
+		insertFault("Low Battery", thisBoat->faultString);
 		steeringPID.SetMode(MANUAL);
 		return ARD_LOWBATTERY;
 	}
 	
 	// check for packet timeout
 	if ((millis() - thisBoat->timeOfLastBoatHB) > armedPacketTimeout) {
-		thisBoat->faultString |= FAULT_NO_SIGNAL;
+		insertFault("No Signal", thisBoat->faultString);
 		return ARD_SELFRECOVERY;
 	}
 	
@@ -1413,13 +1441,13 @@ arduinoState executeActiveRudder (boatVector * thisBoat, arduinoState lastState)
 	
 	// check for low voltage
 	if (thisBoat->internalVoltage < serviceVoltageLimit) {
-		thisBoat->faultString |= FAULT_LOW_BAT;
+		insertFault("Low Battery", thisBoat->faultString);
 		return ARD_LOWBATTERY;
 	}
 	
 	// check for packet timeout
 	if ((millis() - thisBoat->timeOfLastShoreHB) > armedPacketTimeout) {
-		thisBoat->faultString |= FAULT_NO_SIGNAL;
+		insertFault("No Signal", thisBoat->faultString);
 		return ARD_SELFRECOVERY;
 	}
 	
@@ -1471,7 +1499,7 @@ arduinoState executeLowBattery (boatVector * thisBoat, arduinoState lastState) {
 	
 	// check for battery voltage
 	if (thisBoat->internalVoltage > recoverVoltageLimit) {
-		thisBoat->faultString &= ~FAULT_LOW_BAT;
+		removeFault("Low Battery", thisBoat->faultString);
 		return thisBoat->originMode;
 	}
 
@@ -1509,7 +1537,7 @@ arduinoState executeSelfRecovery (boatVector * thisBoat, arduinoState lastState)
 	
 	// check for low voltage
 	if (thisBoat->internalVoltage < serviceVoltageLimit) {
-		thisBoat->faultString |= FAULT_LOW_BAT;
+		insertFault("Low Battery", thisBoat->faultString);
 		steeringPID.SetMode(MANUAL);
 		return ARD_LOWBATTERY;
 	}
