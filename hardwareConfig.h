@@ -34,10 +34,10 @@
 #define flashDelay  			500		/**< Time in ms between light transitions while flashing					*/
 
 // port mapping
-#define LogSerial				Serial1
-#define RESTSerial				Serial
+#define LogSerial				Serial
+#define RESTSerial				Serial1
 
-//HardwareSerial LogSerial = 		Serial;		/**< Serial port used for logging and feedback */
+//HardwareSerial LogSerial = 	Serial;		/**< Serial port used for logging and feedback */
 //HardwareSerial RESTSerial = 	Serial1;	/**< Serial port used for REST commands and response */
 
 // pin mapping

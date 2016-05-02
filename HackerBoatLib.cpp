@@ -105,69 +105,69 @@ void initREST 	(aREST * rest, boatVector * thisBoat) {
 	rest->set_name(REST_NAME);
 	
 	// Variable assignments
-	rest->variable("mode", 					(int *)&(thisBoat->mode));
-	rest->variable("boatMode", 				(int *)&(thisBoat->boat));
-	rest->variable("command",	 			(int *)&(thisBoat->command));
-	rest->variable("fault", 				(int *)&(thisBoat->faultString));
-	rest->variable("throttle", 				(int *)&(thisBoat->throttle));
-	rest->variable("headingTarget", 		(float *)&(thisBoat->headingTarget));
-	rest->variable("headingCurrent", 		(float *)&(thisBoat->orientation.heading));
-	rest->variable("rudder", 				(float *)&(thisBoat->rudder));
-	rest->variable("rudderRaw", 			(int *)&(thisBoat->rudderRaw));
-	rest->variable("internalVoltage", 		&(thisBoat->internalVoltage));
-	rest->variable("internalVoltageRaw", 	(int *)&(thisBoat->internalVoltageRaw));
-	rest->variable("motorVoltage", 			&(thisBoat->motorVoltage));
-	rest->variable("motorVoltageRaw", 		(int *)&(thisBoat->motorVoltageRaw));
-	rest->variable("motorCurrent", 			&(thisBoat->motorCurrent));
-	rest->variable("motorCurrentRaw", 		(int *)&(thisBoat->motorCurrentRaw));
-	rest->variable("Kp", 					(float *)&(thisBoat->Kp));
-	rest->variable("Ki", 					(float *)&(thisBoat->Ki));
-	rest->variable("Kd", 					(float *)&(thisBoat->Kd));
-	rest->variable("pitch", 				&(thisBoat->orientation.pitch));
-	rest->variable("roll", 					&(thisBoat->orientation.roll));
-	rest->variable("accX", 					&(thisBoat->accX));
-	rest->variable("accY", 					&(thisBoat->accY));
-	rest->variable("accZ", 					&(thisBoat->accZ));
-	rest->variable("magX", 					&(thisBoat->magX));
-	rest->variable("magY", 					&(thisBoat->magY));
-	rest->variable("magZ", 					&(thisBoat->magZ));
-	rest->variable("gyroX", 				&(thisBoat->gyroX));
-	rest->variable("gyroY", 				&(thisBoat->gyroY));
-	rest->variable("gyroZ", 				&(thisBoat->gyroZ));
-	rest->variable("startButton", 			(int *)&(thisBoat->enbButton));
-	rest->variable("stopButton", 			(int *)&(thisBoat->stopButton));
-	rest->variable("horn", 					(int *)&(thisBoat->horn));
-	rest->variable("motorDirRly", 			(int *)&(thisBoat->motorDirRly));
-	rest->variable("motorWhtRly", 			(int *)&(thisBoat->motorWhtRly));
-	rest->variable("motorYlwRly", 			(int *)&(thisBoat->motorYlwRly));
-	rest->variable("motorRedRly", 			(int *)&(thisBoat->motorRedRly));
-	rest->variable("motorRedWhtRly", 		(int *)&(thisBoat->motorRedWhtRly));
-	rest->variable("motorRedYlwRly", 		(int *)&(thisBoat->motorRedYlwRly));
+	rest->variable("i_mode", 				(int *)&(thisBoat->mode));
+	rest->variable("i_boatMode", 			(int *)&(thisBoat->boat));
+	rest->variable("i_command",	 			(int *)&(thisBoat->command));
+	rest->variable("i_fault", 				(int *)&(thisBoat->faultString));
+	rest->variable("i_throttle", 			(int *)&(thisBoat->throttle));
+	rest->variable("d_headingTarget", 		(float *)&(thisBoat->headingTarget));
+	rest->variable("d_headingCurrent", 		(float *)&(thisBoat->orientation.heading));
+	rest->variable("d_rudder", 				(float *)&(thisBoat->rudder));
+	rest->variable("i_rudderRaw", 			(int *)&(thisBoat->rudderRaw));
+	rest->variable("d_internalVoltage", 	&(thisBoat->internalVoltage));
+	rest->variable("i_internalVoltageRaw", 	(int *)&(thisBoat->internalVoltageRaw));
+	rest->variable("d_motorVoltage", 		&(thisBoat->motorVoltage));
+	rest->variable("i_motorVoltageRaw", 	(int *)&(thisBoat->motorVoltageRaw));
+	rest->variable("d_motorCurrent", 		&(thisBoat->motorCurrent));
+	rest->variable("i_motorCurrentRaw", 	(int *)&(thisBoat->motorCurrentRaw));
+	rest->variable("d_Kp", 					(float *)&(thisBoat->Kp));
+	rest->variable("d_Ki", 					(float *)&(thisBoat->Ki));
+	rest->variable("d_Kd", 					(float *)&(thisBoat->Kd));
+	rest->variable("d_pitch", 				&(thisBoat->orientation.pitch));
+	rest->variable("d_roll", 				&(thisBoat->orientation.roll));
+	rest->variable("d_accX", 				&(thisBoat->accX));
+	rest->variable("d_accY", 				&(thisBoat->accY));
+	rest->variable("d_accZ", 				&(thisBoat->accZ));
+	rest->variable("d_magX", 				&(thisBoat->magX));
+	rest->variable("d_magY", 				&(thisBoat->magY));
+	rest->variable("d_magZ", 				&(thisBoat->magZ));
+	rest->variable("d_gyroX", 				&(thisBoat->gyroX));
+	rest->variable("d_gyroY", 				&(thisBoat->gyroY));
+	rest->variable("d_gyroZ", 				&(thisBoat->gyroZ));
+	rest->variable("i_startButton", 		(int *)&(thisBoat->enbButton));
+	rest->variable("i_stopButton", 			(int *)&(thisBoat->stopButton));
+	rest->variable("i_horn", 				(int *)&(thisBoat->horn));
+	rest->variable("i_motorDirRly", 		(int *)&(thisBoat->motorDirRly));
+	rest->variable("i_motorWhtRly", 		(int *)&(thisBoat->motorWhtRly));
+	rest->variable("i_motorYlwRly", 		(int *)&(thisBoat->motorYlwRly));
+	rest->variable("i_motorRedRly", 		(int *)&(thisBoat->motorRedRly));
+	rest->variable("i_motorRedWhtRly", 		(int *)&(thisBoat->motorRedWhtRly));
+	rest->variable("i_motorRedYlwRly", 		(int *)&(thisBoat->motorRedYlwRly));
 		
 	// function assignments
-	rest->function("writeBoatMode", 		writeBoatMode);
-	rest->function("writeCommand", 			writeCommand);
-	rest->function("writeThrottle", 		writeThrottle);
-	rest->function("writeHeadingTarget", 	writeHeadingTarget);
-	rest->function("writeHeadingDelta",		writeHeadingDelta);
-	rest->function("writeRudder", 			writeRudder);
-	rest->function("writeKp", 				writeKp);
-	rest->function("writeKi", 				writeKi);
-	rest->function("writeKd", 				writeKd);
-	rest->function("writeHorn", 			writeHorn);
-	rest->function("writeMotorDirRly", 		writeMotorDirRly);
-	rest->function("writemotorWhtRly", 		writeMotorWhtRly);
-	rest->function("writemotorYlwRly", 		writeMotorYlwRly);
-	rest->function("writemotorRedRly", 		writeMotorRedRly);
-	rest->function("writemotorRedWhtRly", 	writeMotorRedWhtRly);
-	rest->function("writemotorRedYlwRly", 	writeMotorRedYlwRly);
-	rest->function("boatHeartBeat", 		boatHeartBeat);
-	rest->function("shoreHeartBeat", 		shoreHeartBeat);
-	rest->function("dumpCoreState",			dumpCoreState);
-	rest->function("dumpOrientationState",	dumpOrientationState);
-	rest->function("dumpInputState",		dumpInputState);
-	rest->function("dumpRawInputState",		dumpRawInputState);
-	rest->function("dumpOutputState",		dumpOutputState);
+	rest->function("f_writeBoatMode", 			writeBoatMode);
+	rest->function("f_writeCommand", 			writeCommand);
+	rest->function("f_writeThrottle", 			writeThrottle);
+	rest->function("f_writeHeadingTarget", 		writeHeadingTarget);
+	rest->function("f_writeHeadingDelta",		writeHeadingDelta);
+	rest->function("f_writeRudder", 			writeRudder);
+	rest->function("f_writeKp", 				writeKp);
+	rest->function("f_writeKi", 				writeKi);
+	rest->function("f_writeKd", 				writeKd);
+	rest->function("f_writeHorn", 				writeHorn);
+	rest->function("f_writeMotorDirRly", 		writeMotorDirRly);
+	rest->function("f_writemotorWhtRly", 		writeMotorWhtRly);
+	rest->function("f_writemotorYlwRly", 		writeMotorYlwRly);
+	rest->function("f_writemotorRedRly", 		writeMotorRedRly);
+	rest->function("f_writemotorRedWhtRly", 	writeMotorRedWhtRly);
+	rest->function("f_writemotorRedYlwRly", 	writeMotorRedYlwRly);
+	rest->function("f_boatHeartBeat", 			boatHeartBeat);
+	rest->function("f_shoreHeartBeat", 			shoreHeartBeat);
+	rest->function("f_dumpCoreState",			dumpCoreState);
+	rest->function("f_dumpOrientationState",	dumpOrientationState);
+	rest->function("f_dumpInputState",			dumpInputState);
+	rest->function("f_dumpRawInputState",		dumpRawInputState);
+	rest->function("f_dumpOutputState",			dumpOutputState);
 	
 	// Serial.println("REST setup complete");
 }
@@ -660,7 +660,7 @@ int faultCount (const String &faultString) {
 	int cnt = 0;
 	int ptr = 0;
 	while (ptr >= 0) {
-		ptr = faultString.indexOf(':', ptr);
+		ptr = faultString.indexOf(':', (ptr + 1));
 		if (ptr > 0) cnt++;
 	}
 	return cnt;
@@ -675,14 +675,14 @@ int writeBoatMode (String params) {
 	for (uint8_t i = 0; i < boatModeCount; i++) {
 		if(params.startsWith(boatModes[i])) {
 			boat.boat = (boatMode)i;
-			restInput.addToBuffer(F("\"boat\": \""));
+			restInput.addToBuffer(F("{\"boat\":\""));
 			restInput.addToBuffer(boatModes[boat.boat]);
-			restInput.addToBuffer(F("\""));
+			restInput.addToBuffer(F("\"}"));
 			return 0;
 		}
 	}
 	boat.boat = BOAT_UNKNOWN;
-	restInput.addToBuffer(F("\"boat\":\"None\""));
+	restInput.addToBuffer(F("{\"boat\":\"None\"}"));
 	return -1;
 }
 
@@ -690,14 +690,14 @@ int writeCommand (String params) {
 	for (uint8_t i = 0; i < arduinoModeCount; i++) {
 		if(params.startsWith(arduinoModes[i])) {
 			boat.command = (arduinoMode)i;
-			restInput.addToBuffer(F("\"command\": \""));
+			restInput.addToBuffer(F("{\"command\": \""));
 			restInput.addToBuffer(arduinoModes[boat.command]);
-			restInput.addToBuffer(F("\""));
+			restInput.addToBuffer(F("\"}"));
 			return 0;
 		}
 	}
 	boat.command = ARD_NONE;
-	restInput.addToBuffer(F("\"command\":\"None\""));
+	restInput.addToBuffer(F("{\"command\":\"None\"}"));
 	return -1;
 }
 
@@ -709,8 +709,9 @@ int writeThrottle (String params) {
 				boat.throttle = (throttleState)throttleIn;
 		}
 	}
-	restInput.addToBuffer(F("\"throttle\":"));
+	restInput.addToBuffer(F("{\"throttle\":"));
 	restInput.addToBuffer(boat.throttle);
+	restInput.addToBuffer(F("}"));
 	return boat.throttle;
 }
 
@@ -721,8 +722,9 @@ int writeHeadingTarget (String params) {
 			boat.headingTarget = headingIn;
 		}
 	}
-	restInput.addToBuffer(F("\"headingTarget\":"));
+	restInput.addToBuffer(F("{\"headingTarget\":"));
 	restInput.addToBuffer(boat.headingTarget);
+	restInput.addToBuffer(F("}"));
 	return (boat.headingTarget);
 }
 
@@ -735,8 +737,9 @@ int writeHeadingDelta (String params) {
 			if (boat.headingTarget > 360) boat.headingTarget -= 360;
 		}
 	}
-	restInput.addToBuffer(F("\"headingTarget\":"));
+	restInput.addToBuffer(F("{\"headingTarget\":"));
 	restInput.addToBuffer(boat.headingTarget);
+	restInput.addToBuffer(F("}"));
 	return (boat.headingTarget);
 }
 
@@ -749,8 +752,9 @@ int writeRudder (String params) {
 				boat.rudder = rudderIn;
 			}
 	}
-	restInput.addToBuffer(F("\"rudder\":"));
+	restInput.addToBuffer(F("{\"rudder\":"));
 	restInput.addToBuffer(boat.rudder);
+	restInput.addToBuffer(F("}"));
 	return (boat.rudder * 10);
 }
 
@@ -760,8 +764,9 @@ int writeKp (String params) {
 		boat.Kp = Kin;
 		steeringPID.SetTunings(boat.Kp, boat.Ki, boat.Kd);
 	}
-	restInput.addToBuffer(F("\"Kp\":"));
+	restInput.addToBuffer(F("{\"Kp\":"));
 	restInput.addToBuffer(boat.Kp);
+	restInput.addToBuffer(F("}"));
 	return (boat.Kp * 1000);
 }
 
@@ -771,8 +776,9 @@ int writeKi (String params) {
 		boat.Ki = Kin;
 		steeringPID.SetTunings(boat.Kp, boat.Ki, boat.Kd);
 	}
-	restInput.addToBuffer(F("\"Ki\":"));
+	restInput.addToBuffer(F("{\"Ki\":"));
 	restInput.addToBuffer(boat.Ki);
+	restInput.addToBuffer(F("}"));
 	return (boat.Ki * 1000);
 }
 
@@ -782,8 +788,9 @@ int writeKd (String params) {
 		boat.Kd = Kin;
 		steeringPID.SetTunings(boat.Kp, boat.Ki, boat.Kd);
 	}
-	restInput.addToBuffer(F("\"Kd\":"));
+	restInput.addToBuffer(F("{\"Kd\":"));
 	restInput.addToBuffer(boat.Kd);
+	restInput.addToBuffer(F("}"));
 	return (boat.Kd * 1000);
 }
 
@@ -795,8 +802,9 @@ int writeHorn (String params) {
 			boat.horn = LOW;
 		}
 	}
-	restInput.addToBuffer(F("\"horn\":"));
+	restInput.addToBuffer(F("{\"horn\":"));
 	restInput.addToBuffer(boat.horn);
+	restInput.addToBuffer(F("}"));
 	return (boat.horn);
 }
 
@@ -808,8 +816,9 @@ int writeMotorDirRly (String params) {
 			boat.motorDirRly = LOW;
 		}
 	}
-	restInput.addToBuffer(F("\"motorDirRly\":"));
+	restInput.addToBuffer(F("{\"motorDirRly\":"));
 	restInput.addToBuffer(boat.motorDirRly);
+	restInput.addToBuffer(F("}"));
 	return (boat.motorDirRly);
 }
 
@@ -821,8 +830,9 @@ int writeMotorWhtRly (String params) {
 			boat.motorWhtRly = LOW;
 		}
 	}
-	restInput.addToBuffer(F("\"motorWhtRly\":"));
+	restInput.addToBuffer(F("{\"motorWhtRly\":"));
 	restInput.addToBuffer(boat.motorWhtRly);
+	restInput.addToBuffer(F("}"));
 	return (boat.motorWhtRly);
 }
 
@@ -834,8 +844,9 @@ int writeMotorYlwRly (String params) {
 			boat.motorYlwRly = LOW;
 		}
 	}
-	restInput.addToBuffer(F("\"motorYlwRly\":"));
+	restInput.addToBuffer(F("{\"motorYlwRly\":"));
 	restInput.addToBuffer(boat.motorYlwRly);
+	restInput.addToBuffer(F("}"));
 	return (boat.motorYlwRly);
 }
 
@@ -847,8 +858,9 @@ int writeMotorRedRly (String params) {
 			boat.motorRedRly = LOW;
 		}
 	}
-	restInput.addToBuffer(F("\"motorRedRly\":"));
+	restInput.addToBuffer(F("{\"motorRedRly\":"));
 	restInput.addToBuffer(boat.motorRedRly);
+	restInput.addToBuffer(F("}"));
 	return (boat.motorRedRly);
 }
 
@@ -860,8 +872,9 @@ int writeMotorRedWhtRly (String params) {
 			boat.motorRedWhtRly = LOW;
 		}
 	}
-	restInput.addToBuffer(F("\"motorRedWhtRly\":"));
+	restInput.addToBuffer(F("{\"motorRedWhtRly\":"));
 	restInput.addToBuffer(boat.motorRedWhtRly);
+	restInput.addToBuffer(F("}"));
 	return (boat.motorRedWhtRly);
 }
 
@@ -873,8 +886,9 @@ int writeMotorRedYlwRly (String params) {
 			boat.motorRedYlwRly = LOW;
 		}
 	}
-	restInput.addToBuffer(F("\"motorRedYlwRly\":"));
+	restInput.addToBuffer(F("{\"motorRedYlwRly\":"));
 	restInput.addToBuffer(boat.motorRedYlwRly);
+	restInput.addToBuffer(F("}"));
 	return (boat.motorRedYlwRly);
 }
 
@@ -886,27 +900,28 @@ int writeServoPower (String params) {
 			boat.servoPower = LOW;
 		}
 	}
-	restInput.addToBuffer(F("\"servoPower\":"));
+	restInput.addToBuffer(F("{\"servoPower\":"));
 	restInput.addToBuffer(boat.servoPower);
+	restInput.addToBuffer(F("}"));
 	return (boat.servoPower);
 }
 
 int	boatHeartBeat (String params) {
 	boat.timeOfLastBoatHB = millis();
-	restInput.addToBuffer(F("\"heartbeat\":true"));
+	restInput.addToBuffer(F("{\"heartbeat\":true}"));
 	return 0;
 }
 
 int	shoreHeartBeat (String params) {
 	boat.timeOfLastShoreHB = millis();
-	restInput.addToBuffer(F("\"heartbeat\":true"));
+	restInput.addToBuffer(F("{\"heartbeat\":true}"));
 	return 0;
 
 }
 
 int dumpCoreState (String params) {
 	// valid JSON per http://jsonlint.com/
-	restInput.addToBuffer(F("\"mode\": \""));
+	restInput.addToBuffer(F("{\"mode\": \""));
 	restInput.addToBuffer(arduinoModes[boat.mode]);
 	restInput.addToBuffer(F("\",\"command\": \""));
 	restInput.addToBuffer(arduinoModes[boat.command]);
@@ -916,36 +931,24 @@ int dumpCoreState (String params) {
 	restInput.addToBuffer(boatModes[boat.boat]);
 	restInput.addToBuffer(F("\",\n\"headingTarget\":"));
 	restInput.addToBuffer(boat.headingTarget);
-	restInput.addToBuffer(F(",\n\"timeSinceLastPacket\":"));
-	restInput.addToBuffer(boat.timeSinceLastPacket);
-	restInput.addToBuffer(F(",\n\"timeOfLastPacket\":"));
-	restInput.addToBuffer(boat.timeOfLastPacket);
-	restInput.addToBuffer(F(",\n\"timeOfLastBoatHB\":"));
-	restInput.addToBuffer(boat.timeOfLastBoatHB);
-	restInput.addToBuffer(F(",\n\"timeOfLastShoreHB\":"));
-	restInput.addToBuffer(boat.timeOfLastShoreHB);
-	restInput.addToBuffer(F(",\n\"faultString\":\""));
+	restInput.addToBuffer(F(",\"orientation\":{\"heading\":"));
+	restInput.addToBuffer(boat.orientation.heading);
+	restInput.addToBuffer(F(",\"pitch\":"));
+	restInput.addToBuffer(boat.orientation.pitch);
+	restInput.addToBuffer(F(",\"roll\":"));
+	restInput.addToBuffer(boat.orientation.roll);
+	restInput.addToBuffer(F("},\n\"faultString\":\""));
 	restInput.addToBuffer(boat.faultString.c_str());
-	restInput.addToBuffer(F("\",\n\"Kp\":"));
-	restInput.addToBuffer(boat.Kp);
-	restInput.addToBuffer(F(",\n\"Ki\":"));
-	restInput.addToBuffer(boat.Ki);
-	restInput.addToBuffer(F(",\n\"Kd\":"));
-	restInput.addToBuffer(boat.Kd);
-	restInput.addToBuffer(F(",\n\"startStopTime\":"));
-	restInput.addToBuffer(boat.startStopTime);
-	restInput.addToBuffer(F(",\n\"startModeTime\":"));
-	restInput.addToBuffer(boat.startModeTime);
-	restInput.addToBuffer(F(",\n\"originMode\": \""));
+	restInput.addToBuffer(F("\",\n\"originMode\": \""));
 	restInput.addToBuffer(arduinoModes[boat.originMode]);
-	restInput.addToBuffer(F("\"\n"));
+	restInput.addToBuffer(F("\"}"));
 	
 	return 0;
 }
 
 int dumpOrientationState (String params) {
 	// valid JSON per http://jsonlint.com/
-	restInput.addToBuffer(F("\"orientation\":{\"heading\":"));
+	restInput.addToBuffer(F("{\"orientation\":{\"heading\":"));
 	restInput.addToBuffer(boat.orientation.heading);
 	restInput.addToBuffer(F(",\"pitch\":"));
 	restInput.addToBuffer(boat.orientation.pitch);
@@ -969,13 +972,14 @@ int dumpOrientationState (String params) {
 	restInput.addToBuffer(boat.gyroY);
 	restInput.addToBuffer(F(",\n\"gyroZ\":"));
 	restInput.addToBuffer(boat.gyroZ);
+	restInput.addToBuffer(F("}"));
 	
 	return 0;
 }
 
 int dumpInputState (String params) {
 	// valid JSON per http://jsonlint.com/
-	restInput.addToBuffer(F("\"internalVoltage\":"));
+	restInput.addToBuffer(F("{\"internalVoltage\":"));
 	restInput.addToBuffer(boat.internalVoltage);
 	restInput.addToBuffer(F(",\n\"batteryVoltage\":"));
 	restInput.addToBuffer(boat.batteryVoltage);
@@ -989,13 +993,14 @@ int dumpInputState (String params) {
 	restInput.addToBuffer(boat.rudder);
 	restInput.addToBuffer(F(",\n\"motorCurrent\":"));
 	restInput.addToBuffer(boat.motorCurrent);
+	restInput.addToBuffer(F("}"));
 	
 	return 0;
 }
 
 int dumpRawInputState (String params) {
 	// valid JSON per http://jsonlint.com/
-	restInput.addToBuffer(F("\"rudderRaw\":"));
+	restInput.addToBuffer(F("{\"rudderRaw\":"));
 	restInput.addToBuffer(boat.rudderRaw);
 	restInput.addToBuffer(F(",\n\"internalVoltageRaw\":"));
 	restInput.addToBuffer(boat.internalVoltageRaw);
@@ -1003,13 +1008,14 @@ int dumpRawInputState (String params) {
 	restInput.addToBuffer(boat.motorVoltageRaw);
 	restInput.addToBuffer(F(",\n\"motorCurrentRaw\":"));
 	restInput.addToBuffer(boat.motorCurrentRaw);
+	restInput.addToBuffer(F("}"));
 	
 	return 0;
 }
 
 int dumpOutputState	(String params) {
 	// valid JSON per http://jsonlint.com/
-	restInput.addToBuffer(F("\"horn\":"));
+	restInput.addToBuffer(F("{\"horn\":"));
 	restInput.addToBuffer(boat.horn);
 	restInput.addToBuffer(F(",\n\"motorDirRly\":"));
 	restInput.addToBuffer(boat.motorDirRly);
@@ -1025,6 +1031,7 @@ int dumpOutputState	(String params) {
 	restInput.addToBuffer(boat.motorRedYlwRly);
 	restInput.addToBuffer(F(",\n\"servoPower\":"));
 	restInput.addToBuffer(boat.servoPower);
+	restInput.addToBuffer(F("}"));
 	
 	return 0;
 }
@@ -1212,6 +1219,7 @@ arduinoState executeFault (boatVector * thisBoat, arduinoState lastState) {
 	LogSerial.print(thisBoat->faultString);
 	LogSerial.println("\"");
 	if (!faultCount(thisBoat->faultString)) return ARD_DISARMED;
+	LogSerial.println("Faults still present");
 	if (ARD_SELFTEST == thisBoat->command) return ARD_SELFTEST;
 
 	return ARD_FAULT;

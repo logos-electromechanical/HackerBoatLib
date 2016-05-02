@@ -16,6 +16,8 @@
 #define NUMBER_VARIABLES	21
 #define NUMBER_FUNCTIONS	25
 #define CHAR_STRINGS	
+#define DEBUG_MODE 0
+#define LIGHTWEIGHT 1
 #include <aREST.h>
 
 /**< Low battery fault bit  */
