@@ -39,8 +39,8 @@ void 	setThrottle (boatVector * thisBoat);
  * @brief Initialize Arduino I/O
  */
 void initIO 	(void) {
-	LogSerial.begin(115200);
-	RESTSerial.begin(115200);
+	LogSerial.begin(LOGspeed);
+	RESTSerial.begin(RESTspeed);
 	pinMode(servoEnable, 		OUTPUT);
 	pinMode(steeringPin, 		OUTPUT);
 	pinMode(relaySpeedWht, 		OUTPUT);
