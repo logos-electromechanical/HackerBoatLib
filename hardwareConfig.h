@@ -26,9 +26,9 @@
 #define startupTestPeriod     	6500	/**< Period to stay in the self-test state 									*/
 #define enbButtonTime        	5000	/**< Time the enable button needs to be pressed, in ms, to arm the boat		*/
 #define stopButtonTime       	250		/**< Time the stop button needs to be pressed, in ms, to disarm the boat	*/
-#define disarmedPacketTimeout 	60000	/**< Connection timeout, in ms, in the disarmed state						*/
-#define armedPacketTimeout   	60000	/**< Connection timeout, in ms, in the armed state							*/
-#define activePacketTimeout  	300000	/**< Connection timeout, in ms, in the active state							*/
+#define disarmedPacketTimeout 	3000000	/**< Connection timeout, in ms, in the disarmed state						*/
+#define armedPacketTimeout   	3000000	/**< Connection timeout, in ms, in the armed state							*/
+#define activePacketTimeout  	3000000	/**< Connection timeout, in ms, in the active state							*/
 #define hornTimeout  			2000	/**< Time in ms to sound the horn for before entering an unsafe state		*/	
 #define sendDelay            	1000	/**< Time in ms between packet transmissions 								*/
 #define flashDelay  			500		/**< Time in ms between light transitions while flashing					*/
@@ -36,8 +36,8 @@
 // port mapping
 #define LogSerial				Serial
 #define RESTSerial				Serial1
-#define RESTspeed				1000000
-#define LOGspeed				250000
+#define RESTspeed				115200
+#define LOGspeed				115200
 
 //HardwareSerial LogSerial = 	Serial;		/**< Serial port used for logging and feedback */
 //HardwareSerial RESTSerial = 	Serial1;	/**< Serial port used for REST commands and response */

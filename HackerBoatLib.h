@@ -16,7 +16,7 @@
 #define NUMBER_VARIABLES	21
 #define NUMBER_FUNCTIONS	25
 #define CHAR_STRINGS	
-#define DEBUG_MODE 0
+#define DEBUG_MODE 1
 #define LIGHTWEIGHT 1
 #include <aREST.h>
 
@@ -65,7 +65,7 @@ const String arduinoModes[] = {
 	"Fault", 
 	"SelfRecovery", 
 	"ArmedTest", 
-	"ActiveRudder", 
+	"ACtiveRudder", 
 	"None"};
 						
 /**

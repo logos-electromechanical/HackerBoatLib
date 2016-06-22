@@ -1291,6 +1291,7 @@ arduinoState executeArmed (boatVector * thisBoat, arduinoState lastState) {
 			return ARD_ACTIVERUDDER;
 		}
 	}
+	return ARD_ARMED;
 	
 }
 
@@ -1365,15 +1366,15 @@ arduinoState executeActive (boatVector * thisBoat, arduinoState lastState) {
 	
 	if (lastState != ARD_ACTIVE) {
 		thisBoat->horn 				= LOW;
-		thisBoat->motorDirRly 		= LOW;
-		thisBoat->motorWhtRly 		= LOW;
-		thisBoat->motorRedRly 		= LOW;
-		thisBoat->motorYlwRly 		= LOW;
-		thisBoat->motorRedWhtRly 	= LOW;
-		thisBoat->motorRedYlwRly 	= LOW;
-		thisBoat->rudder 			= 0;
+		//thisBoat->motorDirRly 		= LOW;
+		//thisBoat->motorWhtRly 		= LOW;
+		//thisBoat->motorRedRly 		= LOW;
+		//thisBoat->motorYlwRly 		= LOW;
+		//thisBoat->motorRedWhtRly 	= LOW;
+		//thisBoat->motorRedYlwRly 	= LOW;
+		//thisBoat->rudder 			= 0;
 		thisBoat->servoPower		= HIGH;
-		thisBoat->throttle 			= STOP;
+		//thisBoat->throttle 			= STOP;
 	}
 	
 	// check for the stop button
@@ -1419,6 +1420,8 @@ arduinoState executeActive (boatVector * thisBoat, arduinoState lastState) {
 		steeringPID.SetMode(MANUAL);
 		return ARD_DISARMED;
 	}
+	
+	return ARD_ACTIVE;
 }
 
 arduinoState executeActiveRudder (boatVector * thisBoat, arduinoState lastState)  {
@@ -1427,13 +1430,13 @@ arduinoState executeActiveRudder (boatVector * thisBoat, arduinoState lastState)
 	
 	if (lastState != ARD_ACTIVERUDDER) {
 		thisBoat->horn 				= LOW;
-		thisBoat->motorDirRly 		= LOW;
-		thisBoat->motorWhtRly 		= LOW;
-		thisBoat->motorRedRly 		= LOW;
-		thisBoat->motorYlwRly 		= LOW;
-		thisBoat->motorRedWhtRly 	= LOW;
-		thisBoat->motorRedYlwRly 	= LOW;
-		thisBoat->rudder 			= 0;
+		//thisBoat->motorDirRly 		= LOW;
+		//thisBoat->motorWhtRly 		= LOW;
+		//thisBoat->motorRedRly 		= LOW;
+		//thisBoat->motorYlwRly 		= LOW;
+		//thisBoat->motorRedWhtRly 	= LOW;
+		//thisBoat->motorRedYlwRly 	= LOW;
+		//thisBoat->rudder 			= 0;
 		thisBoat->servoPower		= HIGH;
 	}
 	
@@ -1468,6 +1471,8 @@ arduinoState executeActiveRudder (boatVector * thisBoat, arduinoState lastState)
 		thisBoat->command = ARD_NONE;
 		return ARD_DISARMED;
 	}
+	
+	return ARD_ACTIVERUDDER;
 }
 
 arduinoState executeLowBattery (boatVector * thisBoat, arduinoState lastState) {
