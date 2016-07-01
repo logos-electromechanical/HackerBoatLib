@@ -168,6 +168,7 @@ void initREST 	(aREST * rest, boatVector * thisBoat) {
 	rest->function("f_dumpInputState",			dumpInputState);
 	rest->function("f_dumpRawInputState",		dumpRawInputState);
 	rest->function("f_dumpOutputState",			dumpOutputState);
+	rest->function("f_writeTime",				writeTime);
 	
 	// Serial.println("REST setup complete");
 }
@@ -280,6 +281,23 @@ void output (boatVector * thisBoat) {
 	digitalWrite(relaySpeedRedYlw, thisBoat->motorRedYlwRly);
 	thisBoat->rudderRaw = map(((thisBoat->rudder)*10), (pidMin*10), (pidMax*10), servoMin, servoMax);
 	steeringServo.writeMicroseconds(thisBoat->rudderRaw);	
+	LogSerial.print(millis());
+	LogSerial.print(',');
+	LogSerial.print(arduinoModes[(uint8_t)(thisBoat->mode)]);
+	LogSerial.print(',');
+	LogSerial.print(thisBoat->headingTarget);
+	LogSerial.print(',');
+	LogSerial.print(thisBoat->orientation.heading);
+	LogSerial.print(',');
+	LogSerial.print((int8_t)thisBoat->throttle);
+	LogSerial.print(',');
+	LogSerial.print(thisBoat->rudderRaw);
+	LogSerial.print(',');
+	LogSerial.print(thisBoat->internalVoltageRaw);
+	LogSerial.print(',');
+	LogSerial.print(thisBoat->motorVoltageRaw);
+	LogSerial.print(',');
+	LogSerial.println(thisBoat->motorCurrentRaw);
 }
 
 ////////////////////////////////
@@ -1035,7 +1053,16 @@ int dumpOutputState	(String params) {
 	
 	return 0;
 }
-	
+
+int writeTime (String params) {
+	unsigned long now = millis(); 
+	LogSerial.print(now);
+	LogSerial.print(F(",TimeSync,"));
+	LogSerial.println(params);
+	restInput.addToBuffer(F("{\"TimeSync\":"));
+	restInput.addToBuffer(now);
+	restInput.addToBuffer('}');
+}
 
 ////////////////////////////////
 // state function definitions //
@@ -1061,7 +1088,7 @@ arduinoState executeSelfTest (boatVector * thisBoat, arduinoState lastState) {
 	static uint8_t gyroFaultCnt = 0;
 	static uint8_t signalFaultCnt = 0;
 
-	LogSerial.println(F("**** Self-testing... ****"));
+	//LogSerial.println(F("**** Self-testing... ****"));
 
 	// if we've just entered this state, reset all the counters
 	if (lastState != ARD_SELFTEST) {
@@ -1162,7 +1189,7 @@ arduinoState executeSelfTest (boatVector * thisBoat, arduinoState lastState) {
 arduinoState executeDisarmed (boatVector * thisBoat, arduinoState lastState) {
 	static long startEnbTime;
 
-	LogSerial.println(F("**** Disarmed ****"));
+	//LogSerial.println(F("**** Disarmed ****"));
 	
 	// Power down all relays & the servo, and center the rudder
 	thisBoat->motorDirRly 		= LOW;
@@ -1198,7 +1225,7 @@ arduinoState executeDisarmed (boatVector * thisBoat, arduinoState lastState) {
 
 arduinoState executeFault (boatVector * thisBoat, arduinoState lastState) {
 
-	LogSerial.println(F("**** Fault ****"));
+	//LogSerial.println(F("**** Fault ****"));
 	
 	// Power down all relays & the servo, and center the rudder
 	thisBoat->motorDirRly 		= LOW;
@@ -1228,7 +1255,7 @@ arduinoState executeFault (boatVector * thisBoat, arduinoState lastState) {
 
 arduinoState executeArmed (boatVector * thisBoat, arduinoState lastState) {
 
-	LogSerial.println(F("**** Armed ****"));
+	//LogSerial.println(F("**** Armed ****"));
 	
 	// Power down all relays & the servo, and center the rudder
 	thisBoat->motorDirRly 		= LOW;
@@ -1297,7 +1324,7 @@ arduinoState executeArmed (boatVector * thisBoat, arduinoState lastState) {
 
 arduinoState executeArmedTest (boatVector * thisBoat, arduinoState lastState) {
 
-	LogSerial.println(F("**** ArmedTest ****"));
+	//LogSerial.println(F("**** ArmedTest ****"));
 	
 	// reset timers & relays upon state entry
 	if (lastState != ARD_ARMEDTEST) {
@@ -1362,7 +1389,7 @@ arduinoState executeArmedTest (boatVector * thisBoat, arduinoState lastState) {
 
 arduinoState executeActive (boatVector * thisBoat, arduinoState lastState) {
 
-	LogSerial.println(F("**** Active ****"));
+	//LogSerial.println(F("**** Active ****"));
 	
 	if (lastState != ARD_ACTIVE) {
 		thisBoat->horn 				= LOW;
@@ -1426,7 +1453,7 @@ arduinoState executeActive (boatVector * thisBoat, arduinoState lastState) {
 
 arduinoState executeActiveRudder (boatVector * thisBoat, arduinoState lastState)  {
 
-	LogSerial.println(F("**** ActiveRudder ****"));
+	//LogSerial.println(F("**** ActiveRudder ****"));
 	
 	if (lastState != ARD_ACTIVERUDDER) {
 		thisBoat->horn 				= LOW;
@@ -1477,7 +1504,7 @@ arduinoState executeActiveRudder (boatVector * thisBoat, arduinoState lastState)
 
 arduinoState executeLowBattery (boatVector * thisBoat, arduinoState lastState) {
 
-	LogSerial.println(F("**** Low Battery ****"));
+	//LogSerial.println(F("**** Low Battery ****"));
 	
 	// Power down all relays & the servo, and center the rudder
 	thisBoat->motorDirRly 		= LOW;
@@ -1521,7 +1548,7 @@ arduinoState executeLowBattery (boatVector * thisBoat, arduinoState lastState) {
 
 arduinoState executeSelfRecovery (boatVector * thisBoat, arduinoState lastState) {
 	
-	LogSerial.println(F("**** SelfRecovery ****"));
+	//LogSerial.println(F("**** SelfRecovery ****"));
 	
 	if (lastState != ARD_SELFRECOVERY) {
 		thisBoat->horn 				= LOW;

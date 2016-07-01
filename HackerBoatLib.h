@@ -16,7 +16,7 @@
 #define NUMBER_VARIABLES	21
 #define NUMBER_FUNCTIONS	25
 #define CHAR_STRINGS	
-#define DEBUG_MODE 1
+//#define DEBUG_MODE 1
 #define LIGHTWEIGHT 1
 #include <aREST.h>
 
@@ -280,6 +280,7 @@ int dumpOrientationState(String params);
 int dumpInputState		(String params);
 int dumpRawInputState	(String params);
 int dumpOutputState		(String params);
+int writeTime			(String params);
 
 /////////////////////////////////
 // state function declarations //
