@@ -36,7 +36,7 @@
 // port mapping
 #define LogSerial				Serial
 #define RESTSerial				Serial1
-#define RESTspeed				115200
+#define RESTspeed				1000000
 #define LOGspeed				115200
 
 //HardwareSerial LogSerial = 	Serial;		/**< Serial port used for logging and feedback */
