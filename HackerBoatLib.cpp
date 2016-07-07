@@ -1055,7 +1055,7 @@ int dumpOutputState	(String params) {
 }
 
 int writeTime (String params) {
-	unsigned long now = millis(); 
+	long now = millis(); 
 	LogSerial.print(now);
 	LogSerial.print(F(",TimeSync,"));
 	LogSerial.println(params);
