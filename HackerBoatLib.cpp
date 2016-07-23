@@ -240,8 +240,8 @@ void input (aREST * rest, boatVector * thisBoat) {
 	
 	// read analog inputs
 	thisBoat->internalVoltageRaw 	= analogRead(internalBatVolt);
-	thisBoat->motorVoltageRaw		= analogRead(motorVolt);
-	thisBoat->motorCurrentRaw		= analogRead(motorCurrent);
+	thisBoat->motorVoltageRaw		= analogRead(batteryVolt);		// that's where it's plugged in
+	thisBoat->motorCurrentRaw		= analogRead(batteryCurrent);	// that's where it's plugged in
 	thisBoat->internalVoltage		= thisBoat->internalVoltageRaw 	* internalBatVoltMult;
 	thisBoat->motorVoltage			= thisBoat->motorVoltageRaw 	* motorVoltMult;
 	thisBoat->motorCurrent			= (thisBoat->motorCurrentRaw 	+ motorCurrentOffset) * motorCurrentMult;
